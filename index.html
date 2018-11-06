@@ -816,6 +816,66 @@
 
     $(document).ready(function() {
 
+        function dataDef () {
+              let mainTableData;
+
+              axios.defaults.headers.common['Authorization'] = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjczOGVhOWE4ZmZhN2E2OTE1ZjNiM2Y1NDRlYTQ5MTYwMGEzZWVjNDg3ZjQ0YjAzOTJhN2U2NGFlYjU5YjM2NTAzOTcyNzIzYWViNGJkM2Y5In0.eyJhdWQiOiI5IiwianRpIjoiNzM4ZWE5YThmZmE3YTY5MTVmM2IzZjU0NGVhNDkxNjAwYTNlZWM0ODdmNDRiMDM5MmE3ZTY0YWViNTliMzY1MDM5NzI3MjNhZWI0YmQzZjkiLCJpYXQiOjE1MzAwMzQ5NTYsIm5iZiI6MTUzMDAzNDk1NiwiZXhwIjoxNTYxNTcwOTU2LCJzdWIiOiIyIiwic2NvcGVzIjpbXX0.iP7EchzmwfmyfWT_YbJlWZ2slqI4Aj-F_9e_Ng62qpLrg3k-GfBulNwGwW29f0UQT2ZJM61AFAvbTJeDG_WOL51RGQkkZqmTEuICLb7KcTcUDcDRWjD7qXRTpk8f8ejHCtHmsnmHbkgA3E0NfJBSORncjxIypaqJZFqx5Ycft0cmOtpHaYohCx6Ryzs2bBh-3RUeExxDr13xuOtmB1sz46-vGPgiMdWu-qUGmk6ZAU9RLXSEC1hkA44PDZVKPD93GgrAPxD1o9P7aFVh6YYAVm3C0NseQ9m15PwxDxj79CDlK842HRPZP6I7Quq7XUDVqR_jvRuDZrohwsJp8oFndqfySe3uKeeE02--78iMJLGXERzu4ZR-KWyfSQecuvOO_PNq7E-wdnaQK5sQxdN2uOUzefEuXe8Tfgb0p2Xi9_pfhjy-5Dozi9Ny2gCtrIr05NMCZzd5vZi2aeZCZJ2AvOl1JNOfeuDJjh1HjEuditDNdI3UPWl0cwx5ClPLmxXGzULDYL2shXymdObsqkRkKbVoyulDb23QBELbzf-xDmBOHWkC4WBO4T1E7eHKwD0MFTwkcRtT3QDKwOJsfR8XJHIRgXNp99LzhoAf3U_Z64y7jm4hgZyTvr2VNt6bs3TaN1o4fmSMjWbBgSd3egjgTNb8nZ0M7gREpOnz8R_ExIM";;
+              axios
+                .get('https://admin.cameramate.com/api/orders/25624')
+                .then(response => (mainTableData = response.data.data));
+
+              let tmp = [
+                {
+                  value: false,
+                  tag_custom: "Name",
+                  val_custom: mainTableData[0].customers_name,
+                  tag_ship: "Name",
+                  val_ship: ""
+
+                },
+                {
+                  value: false,
+                  tag_custom: "Street",
+                  val_custom: mainTableData[0].customers_street_address,
+                  tag_ship: "Street",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "State",
+                  val_custom: 'STATE',
+                  tag_ship: mainTableData[0].customers_state,
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "City",
+                  val_custom: mainTableData[0].customers_city,
+                  tag_ship: "City",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "country | postcode",
+                  val_custom: mainTableData[0].customers_country + " | " + mainTableData[0].customers_postcode,
+                  tag_ship: "country | postcode",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: mainTableData[0].customers_email_address,
+                  val_custom: "xsyzxw@qq.com"
+                },
+                {
+                  value: false,
+                  tag_custom: "Telephone",
+                  val_custom: mainTableData[0].customers_telephone
+                }
+              ];
+
+              return tmp;
+          }
+
         // status history
         let statusHistory = [
           {
@@ -1371,84 +1431,25 @@
             }
           },
           methods: {
-          save () {
-            this.snack = true
-            this.snackColor = 'success'
-            this.snackText = 'Data saved'
-          },
-          copyleft () {
-            this.tabledata.forEach(function(item) {
-              if (item.val_ship !== undefined) {
-                item.val_ship = item.val_custom;
-              }
-            });
-          },
-          dismiss () {
-            this.tabledata.forEach(function(item) {
-              if (item.val_ship !== undefined) {
-                item.val_ship = "";
-              }
-            });
-          },
-          dataDef () {
-              let mainTableData;
-
-              axios.defaults.headers.common['Authorization'] = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjczOGVhOWE4ZmZhN2E2OTE1ZjNiM2Y1NDRlYTQ5MTYwMGEzZWVjNDg3ZjQ0YjAzOTJhN2U2NGFlYjU5YjM2NTAzOTcyNzIzYWViNGJkM2Y5In0.eyJhdWQiOiI5IiwianRpIjoiNzM4ZWE5YThmZmE3YTY5MTVmM2IzZjU0NGVhNDkxNjAwYTNlZWM0ODdmNDRiMDM5MmE3ZTY0YWViNTliMzY1MDM5NzI3MjNhZWI0YmQzZjkiLCJpYXQiOjE1MzAwMzQ5NTYsIm5iZiI6MTUzMDAzNDk1NiwiZXhwIjoxNTYxNTcwOTU2LCJzdWIiOiIyIiwic2NvcGVzIjpbXX0.iP7EchzmwfmyfWT_YbJlWZ2slqI4Aj-F_9e_Ng62qpLrg3k-GfBulNwGwW29f0UQT2ZJM61AFAvbTJeDG_WOL51RGQkkZqmTEuICLb7KcTcUDcDRWjD7qXRTpk8f8ejHCtHmsnmHbkgA3E0NfJBSORncjxIypaqJZFqx5Ycft0cmOtpHaYohCx6Ryzs2bBh-3RUeExxDr13xuOtmB1sz46-vGPgiMdWu-qUGmk6ZAU9RLXSEC1hkA44PDZVKPD93GgrAPxD1o9P7aFVh6YYAVm3C0NseQ9m15PwxDxj79CDlK842HRPZP6I7Quq7XUDVqR_jvRuDZrohwsJp8oFndqfySe3uKeeE02--78iMJLGXERzu4ZR-KWyfSQecuvOO_PNq7E-wdnaQK5sQxdN2uOUzefEuXe8Tfgb0p2Xi9_pfhjy-5Dozi9Ny2gCtrIr05NMCZzd5vZi2aeZCZJ2AvOl1JNOfeuDJjh1HjEuditDNdI3UPWl0cwx5ClPLmxXGzULDYL2shXymdObsqkRkKbVoyulDb23QBELbzf-xDmBOHWkC4WBO4T1E7eHKwD0MFTwkcRtT3QDKwOJsfR8XJHIRgXNp99LzhoAf3U_Z64y7jm4hgZyTvr2VNt6bs3TaN1o4fmSMjWbBgSd3egjgTNb8nZ0M7gREpOnz8R_ExIM";;
-              axios
-                .get('https://admin.cameramate.com/api/orders/25624')
-                .then(response => (mainTableData = response.data.data));
-
-              let tmp = [
-                {
-                  value: false,
-                  tag_custom: "Name",
-                  val_custom: mainTableData[0].customers_name,
-                  tag_ship: "Name",
-                  val_ship: ""
-
-                },
-                {
-                  value: false,
-                  tag_custom: "Street",
-                  val_custom: mainTableData[0].customers_street_address,
-                  tag_ship: "Street",
-                  val_ship: ""
-                },
-                {
-                  value: false,
-                  tag_custom: "State",
-                  val_custom: 'STATE',
-                  tag_ship: mainTableData[0].customers_state,
-                  val_ship: ""
-                },
-                {
-                  value: false,
-                  tag_custom: "City",
-                  val_custom: mainTableData[0].customers_city,
-                  tag_ship: "City",
-                  val_ship: ""
-                },
-                {
-                  value: false,
-                  tag_custom: "country | postcode",
-                  val_custom: mainTableData[0].customers_country + " | " + mainTableData[0].customers_postcode,
-                  tag_ship: "country | postcode",
-                  val_ship: ""
-                },
-                {
-                  value: false,
-                  tag_custom: mainTableData[0].customers_email_address,
-                  val_custom: "xsyzxw@qq.com"
-                },
-                {
-                  value: false,
-                  tag_custom: "Telephone",
-                  val_custom: mainTableData[0].customers_telephone
+            save () {
+              this.snack = true
+              this.snackColor = 'success'
+              this.snackText = 'Data saved'
+            },
+            copyleft () {
+              this.tabledata.forEach(function(item) {
+                if (item.val_ship !== undefined) {
+                  item.val_ship = item.val_custom;
                 }
-              ];
-
-              return tmp;
-          }
+              });
+            },
+            dismiss () {
+              this.tabledata.forEach(function(item) {
+                if (item.val_ship !== undefined) {
+                  item.val_ship = "";
+                }
+              });
+            }
         }
       });
 
