@@ -1,8 +1,1378 @@
-[
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <link href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons' rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.min.css" rel="stylesheet">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
+</head>
+<body>
+
+  <div id="app" v-cloak >
+    <v-app>
+      <v-content >
+        <div v-if="isActiv">  
+          <div class="tabs">
+            <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Order - {{ order }}</a>
+            <a v-on:click="activetab=2" v-bind:class="[ activetab === 2 ? 'active' : '' ]">Status history</a>
+            <a v-on:click="activetab=3" v-bind:class="[ activetab === 3 ? 'active' : '' ]">Buyer History</a>
+            <a v-on:click="activetab=4" v-bind:class="[ activetab === 4 ? 'active' : '' ]">Emails - {{ emails_all }} <b>({{ emails_active }})</b></a>
+            <a v-on:click="activetab=5" v-bind:class="[ activetab === 5 ? 'active' : '' ]">Fedex Shipment</a>
+            <a v-on:click="activetab=6" v-bind:class="[ activetab === 6 ? 'active' : '' ]">Note</a> 
+            <v-layout>
+                <v-flex xs12 sm8>
+                </v-flex>
+      
+                  <div sm4>
+                    <v-btn flat color="success">Save</v-btn>
+                  </div>
+                  <div>
+                    <v-btn flat v-on:click="isActiv = !isActiv" color="error">Close</v-btn>
+                  </div>
+            </v-layout>
+          </div>
+
+          <div class="content">
+            <div v-if="activetab === 1" class="tabcontent">
+              <ordertable></ordertable>
+              <ordergrid></ordergrid>
+            </div>
+            <div v-if="activetab === 2" class="tabcontent">
+                <statushistorytable></statushistorytable>
+            </div>
+            <div v-if="activetab === 3" class="tabcontent">
+            </div>
+            <div v-if="activetab === 4" class="tabcontent emails">
+              
+                  <emailstable></emailstable>
+                </v-flex>
+                <v-flex xs4></v-flex>
+
+              </v-layout>
+
+            </div>
+            <div v-if="activetab === 5" class="tabcontent">
+              <fedexstepper></fedexstepper>
+            </div>
+            <div v-if="activetab === 6" class="tabcontent">
+              <v-textarea
+                label="Note here"
+              ></v-textarea>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-xs-center">
+          <v-btn outline fab color="teal" v-on:click="isActiv = !isActiv">
+            <v-icon>replay</v-icon>
+          </v-btn>
+        </div>
+      </content>
+    </v-app>
+  </div>
+  
+  <!-- order table -->
+  <template id="orderTable">
+    <div>
+      <v-data-table
+        :headers="headers"
+        :items="tabledata"
+        hide-actions
+        class="elevation-1"
+      > 
+        <template slot="headerCell" slot-scope="props">
+          <span class="bold">{{ props.header.text }}</span>
+          <v-btn small v-if="props.header.text == 'Shipment address' && !buttonSwitch" v-on:click="copyleft(), buttonSwitch = !buttonSwitch" >copy left</v-btn>
+          <v-btn small v-if="props.header.text == 'Shipment address' && buttonSwitch" v-on:click="dismiss(), buttonSwitch = !buttonSwitch" >dismiss</v-btn>
+        </template>
+        <template slot="items" slot-scope="props">
+          <th width="5%">{{ props.item.tag_custom }}</th>
+          <td width="25%" class="text-xs-left border-right">
+
+            <v-edit-dialog
+              :return-value.sync="props.item.val_custom"
+              lazy
+              @save="save"
+            > {{ props.item.val_custom }}
+            <v-text-field
+              slot="input"
+              v-model="props.item.val_custom"
+              :rules="[rules.required, rules.max25chars]"
+              label="Edit"
+              single-line
+              counter
+              v-if="props.item.tag_custom !== 'E-Mail'"
+            ></v-text-field>
+            <v-text-field
+              slot="input"
+              v-model="props.item.val_custom"
+              :rules="[rules.required, rules.email, rules.max25chars]"
+              label="Edit"
+              single-line
+              counter
+              v-else
+            ></v-text-field>
+
+          </td>
+          <th class="text-xs-left" width="1%">{{ props.item.tag_ship }}</th>
+          <td class="text-xs-left" width="25%">
+            <v-edit-dialog
+              :return-value.sync="props.item.val_ship "
+              lazy
+              @save="save"
+            > {{ props.item.val_ship }}
+            <v-text-field
+              slot="input"
+              v-model="props.item.val_ship"
+              :rules="[rules.required, rules.max30chars]"
+              label="Edit"
+              single-line
+              counter
+              v-if="props.item.tag_ship !== 'E-Mail' && 
+              props.item.tag_ship !== undefined && props.item.tag_ship != undefined"
+            ></v-text-field>
+          
+          </td>
+        </template>
+      </v-data-table>
+      <v-snackbar v-model="snack" top :timeout="3000" :color="snackColor">
+        {{ snackText }}
+        <v-btn flat @click="snack = false">Close</v-btn>
+      </v-snackbar>
+
+      <ordertablesecondary></ordertablesecondary>
+    </div>
+  </template>
+  
+  <!-- order grid -->
+  <template id="orderGrid">
+    <v-container wrap fluid>
+
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Payment method</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <v-select
+            :items="paymentMethods"
+            prepend-icon="account_balance_wallet"
+          ></v-select>
+        </v-flex>
+      </v-layout>
+
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Currency</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <v-select
+            :items="currencies"
+            prepend-icon="euro_symbol"
+          ></v-select>
+        </v-flex>
+      </v-layout>
+
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Status</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <v-select
+            :items="statuses"
+            prepend-icon="timeline"
+          ></v-select>
+        </v-flex>
+      </v-layout>
+
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Ordered</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <ordereddatepicker></ordereddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Paid</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <paiddatepicker></paiddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Shipped</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <shippeddatepicker></shippeddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Cleared</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <cleareddatepicker></cleareddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Refunded</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <refundeddatepicker></refundeddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>Auction account</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <v-select
+            :items="auction_accounts"
+            prepend-icon="account_box"
+          ></v-select>
+        </v-flex>
+      </v-layout>
+      <v-layout row>
+        <v-flex xs4>
+          <v-subheader>PayPal Id</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <v-select
+            :items="paypalls"
+            prepend-icon="payment"
+          ></v-select>
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </template>
+
+  <!-- date picker -->
+  <template id="datePicker">
+    <v-layout row wrap>
+      <v-flex xs12 sm3 md11>
+        <v-menu
+          ref="menu"
+          :close-on-content-click="false"
+          v-model="menu"
+          :nudge-right="40"
+          :return-value.sync="date"
+          lazy
+          transition="scale-transition"
+          offset-y
+          full-width
+          min-width="290px"
+        >
+          <v-text-field
+            slot="activator"
+            v-model="date"
+            prepend-icon="event"
+            readonly
+          ></v-text-field>
+          <v-date-picker v-model="date" no-title scrollable>
+            <v-spacer></v-spacer>
+            <v-btn flat color="primary" @click="menu = false">Cancel</v-btn>
+            <v-btn flat color="primary" @click="$refs.menu.save(date)">OK</v-btn>
+          </v-date-picker>
+        </v-menu>
+      </v-flex>
+    </v-layout>
+  </template>
+  
+  <!-- order table secondary -->
+  <template id="orderTableSecondary">
+    <v-card>
+    <v-card-title class="elevation-1">
+      Ordered products
+      <v-spacer></v-spacer>
+      <v-text-field
+        v-model="search"
+        append-icon="search"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
+    </v-card-title>
+      <v-data-table
+        :headers="headers"
+        :items="desserts"
+        :search="search"
+        class="elevation-1"
+      >
+        <template slot="items" slot-scope="props">
+          <td>{{ props.item.id }}</td>
+          <td class="text-xs-left">{{ props.item.product }}</td>
+          <td class="text-xs-left">{{ props.item.quantity }}</td>
+          <td class="text-xs-left">{{ props.item.price }}</td>
+          <td class="text-xs-left">{{ props.item.amount }}</td>
+          <td class="justify-center" width="5%">
+            <v-icon
+              small
+              @click="deleteItem(props.item)"
+            >
+              delete
+            </v-icon>
+          </td>
+        </template>
+        <v-alert slot="no-results" :value="true" color="error" icon="warning">
+          Your search for "{{ search }}" found no results.
+        </v-alert>
+        <template slot="footer" class="elevation-1">
+          <td colspan="100%" class="text-xs-right">
+            <strong>Total: {{ordersTotal()}}</strong>
+          </td>
+        </template>
+      </v-data-table>
+    </v-card>
+  </template>
+
+  <!-- status history table -->
+  <template id="statusHistoryTable">
+    <v-card>
+      <v-card-title>
+        Status History 
+        <v-spacer></v-spacer>
+        <v-text-field
+          v-model="search"
+          append-icon="search"
+          label="Search"
+          single-line
+          hide-details
+        ></v-text-field>
+      </v-card-title>
+      <v-data-table
+        :headers="headers"
+        :items="statushistorydata"
+        :search="search"
+      >
+        <template slot="items" slot-scope="props">
+          <td class="text-xs-left">{{ props.item.date }}</td>
+          <td class="text-xs-left">
+            <v-icon v-if="props.item.notified === 0" color="red">notifications_off</v-icon>
+            <v-icon v-else color="green">done</v-icon>
+          </td>
+          <td class="text-xs-left">{{ props.item.status }}</td>
+          <td class="text-xs-left" v-html="props.item.comments"></td>
+        </template>
+        <v-alert slot="no-results" :value="true" color="error" icon="warning">
+          Your search for "{{ search }}" found no results.
+        </v-alert>
+      </v-data-table>
+    </v-card>
+  </template>
+
+  <!-- emails table -->
+  <template id="emailsTable">
+        <v-card >
+           <v-card-title>
+            Emails
+            <v-spacer></v-spacer>
+            <v-text-field
+              v-model="search"
+              append-icon="search"
+              label="Search"
+              single-line
+              hide-details
+            ></v-text-field>
+          </v-card-title>
+          <v-data-table
+            :headers="headers"
+            :items="emails"
+            :search="search"
+            item-key="date"
+          >
+            <template slot="items" slot-scope="props">
+              <tr @click="props.expanded = !props.expanded">
+                <td class="text-xs-left">{{ props.item.date }}</td>
+                <td class="text-xs-left">{{ props.item.from }}</td>
+                <td class="text-xs-left">{{ props.item.to }}</td>
+                <td class="text-xs-left">
+                  <v-icon v-if="props.item.read == 1" color="green">done</v-icon>
+                  <v-icon v-else color="red">clear</v-icon>
+                </td>
+              </tr>
+            </template>
+            <v-alert slot="no-results" :value="true" color="error" icon="warning">
+              Your search for "{{ search }}" found no results.
+            </v-alert>
+            <template slot="expand" slot-scope="props">
+              <v-card flat class="subheading font-italic">
+                 <v-progress-linear :indeterminate="true" v-if="frame.loading"></v-progress-linear>
+                 <v-layout v-else> 
+                    <v-flex xs2>
+                      <v-img
+                        aspect-ratio="1"
+                        class="grey lighten-2"
+                      >
+                    </v-flex>
+                    <v-flex xs10>                  
+                      <span v-html="frame.body"></span>
+                    </v-flex>
+                 </v-layout>
+              </v-card>
+            </template>
+          </v-data-table>
+        </v-card> 
+  </template>
+
+  <!-- fedex stepper -->
+  <template id="fedexStepper">
+    <v-stepper v-model="e1" non-linear>
+      <v-stepper-header>
+        <v-stepper-step :complete="e1 > 1" step="1" editable>Shipment</v-stepper-step>
+
+        <v-divider></v-divider>
+
+        <v-stepper-step :complete="e1 > 2" step="2" editable>Recipient</v-stepper-step>
+
+        <v-divider></v-divider>
+
+        <v-stepper-step :complete="e1 > 3" step="3" editable>Commodities</v-stepper-step>
+
+        <v-divider></v-divider>
+
+        <v-stepper-step step="4" editable>Package</v-stepper-step>
+      </v-stepper-header>
+
+      <v-stepper-items>
+        <!-- step 1 -->
+        <v-stepper-content step="1">
+          <v-container wrap fluid>
+        
+            <v-layout row>
+              <v-flex xs4>
+                <v-subheader>Ship Timestamp</v-subheader>
+              </v-flex>
+              <v-flex xs8>
+                {{timestamp}}
+              </v-flex>
+            </v-layout>
+        
+            <v-layout row>
+              <v-flex xs4>
+                <v-subheader>Service Type</v-subheader>
+              </v-flex>
+              <v-flex xs8>
+                <v-select
+                  :items="services"
+                  value="International Economy"
+                ></v-select>
+              </v-flex>
+            </v-layout>
+        
+            <v-layout row>
+              <v-flex xs4>
+                <v-subheader>Drop off Type</v-subheader>
+              </v-flex>
+              <v-flex xs8>
+                <v-select
+                  :items="droptypes"
+                  value="Regular Pickup"
+                ></v-select>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        
+          <v-btn
+            color="primary"
+            @click="e1 = 2"
+          >
+            Continue
+          </v-btn>
+        
+          <v-btn flat>Cancel</v-btn>
+        </v-stepper-content>
+        
+        <!-- step 2 -->
+        <v-stepper-content step="2">
+          <v-form>
+            <v-container>
+              <v-layout row wrap>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Person"
+                    value="YANJIE GUO"
+                    
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="City"
+                    value="BEIJING"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Phone"
+                    value="98594699"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Street"
+                    value="601 W3 Oriental Plaza Office Building,1 East Chang`an Avenue, Dongcheng District,"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Company"
+                    value=""
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Province"
+                    value="北京"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Postal"
+                    value="100006"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Country"
+                    value="CN"
+                  ></v-text-field>
+                </v-flex>
+        
+              </v-layout>
+            </v-container>
+          </v-form>
+        
+          <v-btn
+            color="primary"
+            @click="e1 = 3"
+          >
+            Continue
+          </v-btn>
+        
+          <v-btn flat>Cancel</v-btn>
+        </v-stepper-content>
+        
+        <!-- step 3 -->
+        <v-stepper-content step="3">
+          <v-form>
+            <v-container>
+              <v-layout row wrap>
+                <v-flex xs12 sm6 md3>
+                  <v-select
+                  :items="descriptions"
+                  value="Old used Lens"
+                  label="Description"
+                  clearable
+                ></v-select>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-select
+                    :items="countries"
+                    value="DE"
+                    label="Country Of Manufacture"
+                    clearable
+                  ></v-select>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Product"
+                    value="E. Krauss Paris Zeiss Protar 12.5/590 mm #31995 Vintage Lens"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-layout row>
+                    <v-flex xs10>
+                      <v-text-field
+                        label="Customs Price"
+                        value="3000.00"
+                        clearable
+                      ></v-text-field>
+                    </v-flex>
+                    <v-flex xs2>
+                      <v-select 
+                        :items="currencies" 
+                        value="EUR"
+                      ></v-select>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-layout row>
+                    <v-flex xs10>
+                      <v-text-field
+                        label="Insured Price"
+                        value="0"
+                        clearable
+                      ></v-text-field>
+                    </v-flex>
+                    <v-flex xs2>
+                      <v-select 
+                        :items="currencies" 
+                        value="EUR"
+                      ></v-select>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Quantity"
+                    value="1"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Pieces"
+                    value="1"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Weight"
+                    value="3.00"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+              </v-layout>
+            </v-container>
+          </v-form>
+
+          <v-btn
+            color="primary"
+            @click="e1 = 4"
+          >
+            Continue
+          </v-btn>
+
+          <v-btn flat>Cancel</v-btn>
+        </v-stepper-content>
+        <!-- step 4 -->
+        <v-stepper-content step="4">
+          <v-form>
+            <v-container>
+              <v-layout row wrap>
+                <v-flex xs12 sm6 md3>
+                  <v-layout row>
+                    <v-flex xs10>
+                      <v-text-field
+                        label="Total Customs Price"
+                        value="3000.00"
+                        clearable
+                      ></v-text-field>
+                    </v-flex>
+                    <v-flex xs2>
+                      <v-select 
+                        :items="currencies" 
+                        value="EUR"
+                      ></v-select>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-select
+                    :items="units"
+                    value="CM"
+                    label="Units"
+                    clearable
+                  ></v-select>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-layout row>
+                    <v-flex xs10>
+                      <v-text-field
+                        label="Total Insured Price"
+                        value="0"
+                        clearable
+                      ></v-text-field>
+                    </v-flex>
+                    <v-flex xs2>
+                      <v-select 
+                        :items="currencies" 
+                        value="EUR"
+                      ></v-select>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Packaging Type"
+                    :items="packtypes"
+                    value="Your Packaging"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Total Weight"
+                    value="3.00"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Length"
+                    color="red"
+                    append-icon="priority_high"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Width"
+                    color="red"
+                    append-icon="priority_high"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    label="Height"
+                    color="red"
+                    append-icon="priority_high"
+                    clearable
+                  ></v-text-field>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-select 
+                    label="Units"
+                    :items="unitsw" 
+                    value="KG"
+                  ></v-select>
+                </v-flex>
+
+                <v-flex xs12 sm6 md3>
+                  <v-select
+                    value="None specified"
+                    :items="signaturetypes"
+                    label="Signature types"
+                    clearable
+                  ></v-select>
+                </v-flex>
+              </v-layout>
+            </v-container>
+          </v-form>
+          <v-container>
+            <v-layout row wrap>
+              <v-btn color="primary">Print Label&amp;Invoice</v-btn>
+              <v-btn color="primary">Shipping cost</v-btn>
+              <v-flex xs2>
+                <v-select
+                  :items="printers"
+                  label="Printer"
+                  outline
+                ></v-select>
+              </v-flex>
+            </v-layout>
+          </v-container>
+          
+        </v-stepper-content>
+      </v-stepper-items>
+    </v-stepper>
+  </template>
+
+  <script type="text/javascript">
+
+    $(document).ready(function() {
+
+        // status history
+        let statusHistory = [
+          {
+              "orders_status_history_id": 161960,
+              "orders_id": 25877,
+              "orders_status_id": 8,
+              "date_added": "2018-10-18 15:12:53",
+              "customer_notified": 1,
+              "comments": "Manual order edit",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161963,
+              "orders_id": 25877,
+              "orders_status_id": 3,
+              "date_added": "2018-10-18 10:15:11",
+              "customer_notified": 0,
+              "comments": "Send message with tracking number. Tracking - 783313026725",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161962,
+              "orders_id": 25877,
+              "orders_status_id": 3,
+              "date_added": "2018-10-18 10:15:10",
+              "customer_notified": 0,
+              "comments": "283211666254: eBay mark as shipped. With tracking - 783313026725",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161961,
+              "orders_id": 25877,
+              "orders_status_id": 8,
+              "date_added": "2018-10-18 10:13:00",
+              "customer_notified": 0,
+              "comments": "Add ShipmentTrackingNumber: 783313026725 and ShippingCarrierUsed: FedEx",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161959,
+              "orders_id": 25877,
+              "orders_status_id": 8,
+              "date_added": "2018-10-18 10:12:32",
+              "customer_notified": 1,
+              "comments": "Add ShipmentTrackingNumber: 783313026725 and ShippingCarrierUsed: FedEx",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161939,
+              "orders_id": 25877,
+              "orders_status_id": 6,
+              "date_added": "2018-10-18 07:45:14",
+              "customer_notified": 1,
+              "comments": "Leave feedback.",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161940,
+              "orders_id": 25877,
+              "orders_status_id": 6,
+              "date_added": "2018-10-18 07:45:14",
+              "customer_notified": 0,
+              "comments": "PayPalTransactionID:0LD816239R4984324",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161936,
+              "orders_id": 25877,
+              "orders_status_id": 1,
+              "date_added": "2018-10-18 07:30:12",
+              "customer_notified": 0,
+              "comments": "Invoice sent. <br>Succesfull send invoce for ItemID-283211666254 / TransactionID-1901525375018<br>StandardInternational: 0.0<br>",
+              "updated_at": "-0001-11-30 00:00:00"
+          },
+          {
+              "orders_status_history_id": 161935,
+              "orders_id": 25877,
+              "orders_status_id": 1,
+              "date_added": "2018-10-18 07:30:10",
+              "customer_notified": 0,
+              "comments": "",
+              "updated_at": "-0001-11-30 00:00:00"
+          }
+      ];
+
+        // emails
+        let emails = [
+          {
+              "id": 96519,
+              "customers_id": "15606",
+              "email_id": "0",
+              "email_date": "2018-11-04 18:03:41",
+              "email_to": "stocke_duiu2255tcz@members.ebay.co.uk",
+              "email_from": "kostenko.trade@gmail.com",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "madden_82 hat eine Frage zu Artikelnr. 401627924879 gesendet(Angebotsende am 02.12.18 15:29:00 MEZ) – Jules Reygondand Paris Brass Vintage Lens",
+              "is_read": "1",
+              "MessageType": "ResponseToASQQuestion",
+              "QuestionType": "General",
+              "MessageID": "1808050518017",
+              "MessageStatus": "Answered",
+              "products_id": "31695",
+              "orders_id": "0",
+              "auctionID": "401627924879",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "1",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96518,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-04 18:03:39",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "stocke_duiu2255tcz@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "madden_82 hat eine Frage zu Artikelnr. 401627924879 gesendet(Angebotsende am 02.12.18 15:29:00 MEZ) – Jules Reygondand Paris Brass Vintage Lens",
+              "is_read": "0",
+              "MessageType": "AskSellerQuestion",
+              "QuestionType": "General",
+              "MessageID": "1819811485010",
+              "MessageStatus": "Unanswered",
+              "products_id": "31695",
+              "orders_id": null,
+              "auctionID": "401627924879",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96517,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-04 12:26:48",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "zeinsz_kxdy2708pgoc@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "Payment and checkout: zeins_zeins sent a message about LEICA CLOSE UP 16503 for Leica IIIG Code ADVOO #401589696000",
+              "is_read": "0",
+              "MessageType": "ContactTransactionPartner",
+              "QuestionType": "None",
+              "MessageID": "1838934099019",
+              "MessageStatus": "Unanswered",
+              "products_id": "31488",
+              "orders_id": "25968",
+              "auctionID": "401589696000",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96516,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-04 12:00:39",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "simon8_lz6827qdtm@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "simon89 hat eine Frage zu Artikelnr. 253959862082 gesendet(Angebotsende am 01.12.18 10:20:10 MEZ) – MegaVision Digital Camera Back for Medium Format Hasselblad Rollei Mamiya",
+              "is_read": "0",
+              "MessageType": "AskSellerQuestion",
+              "QuestionType": "General",
+              "MessageID": "1817637493016",
+              "MessageStatus": "Unanswered",
+              "products_id": "30265",
+              "orders_id": null,
+              "auctionID": "253959862082",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96515,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-04 07:31:02",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "laugam_gus5208qaf@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "ggstudio888 sent a message about Leica M Summilux 1.4/50 mm #2570246 Germany Lens #253944249858",
+              "is_read": "0",
+              "MessageType": "AskSellerQuestion",
+              "QuestionType": "None",
+              "MessageID": "1838749782019",
+              "MessageStatus": "Unanswered",
+              "products_id": "31479",
+              "orders_id": null,
+              "auctionID": "253944249858",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96514,
+              "customers_id": "12103",
+              "email_id": "0",
+              "email_date": "2018-11-04 06:39:01",
+              "email_to": "mkmc4m6d@yahoo.com",
+              "email_from": "kostenko.trade@gmail.com",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "Details about item: mkmc4m6 sent a message about Leica M Noctilux 1/50 mm #2914445 Lens 11821 1st version E58 #253897038311",
+              "is_read": "1",
+              "MessageType": "ResponseToASQQuestion",
+              "QuestionType": "None",
+              "MessageID": "1807880493017",
+              "MessageStatus": "Answered",
+              "products_id": "31663",
+              "orders_id": "0",
+              "auctionID": "253897038311",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "1",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96513,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-04 06:38:56",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "mkmc4m_fq2105scf@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "Details about item: mkmc4m6 sent a message about Leica M Noctilux 1/50 mm #2914445 Lens 11821 1st version E58 #253897038311",
+              "is_read": "0",
+              "MessageType": "AskSellerQuestion",
+              "QuestionType": "None",
+              "MessageID": "1838733043019",
+              "MessageStatus": "Unanswered",
+              "products_id": "31663",
+              "orders_id": null,
+              "auctionID": "253897038311",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96512,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-03 20:18:48",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "nob9pa_lqw5725tgza@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "leica-post has sent a question about :shipping for item #253835163667, that ended on 10-Sep-18 10:01:42 BST - Leitz Leica M4-P #1636551 Rangefinder Camera Body",
+              "is_read": "0",
+              "MessageType": "ResponseToASQQuestion",
+              "QuestionType": "Shipping",
+              "MessageID": "1815498654013",
+              "MessageStatus": "Unanswered",
+              "products_id": "28751",
+              "orders_id": "25614",
+              "auctionID": "253835163667",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96511,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-03 15:51:39",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "verste_mw3396nbo@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "Details over object: versteeg777 heeft een bericht gestuurd over Isco Gottingen Anamorphic Iscorama F/2.8 #4136607 Nikon Mount nr. 401613584012",
+              "is_read": "0",
+              "MessageType": "ContactTransactionPartner",
+              "QuestionType": "None",
+              "MessageID": "1838066189019",
+              "MessageStatus": "Unanswered",
+              "products_id": "31696",
+              "orders_id": "25941",
+              "auctionID": "401613584012",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96510,
+              "customers_id": "15606",
+              "email_id": "0",
+              "email_date": "2018-11-03 07:33:55",
+              "email_to": "stocke_duiu2255tcz@members.ebay.co.uk",
+              "email_from": "kostenko.trade@gmail.com",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "madden_82 hat eine Frage zu Artikelnr. 401627924879 gesendet(Angebotsende am 02.12.18 15:29:00 MEZ) – Jules Reygondand Paris Brass Vintage Lens",
+              "is_read": "1",
+              "MessageType": "ResponseToASQQuestion",
+              "QuestionType": "General",
+              "MessageID": "1807524492017",
+              "MessageStatus": "Answered",
+              "products_id": "31695",
+              "orders_id": "0",
+              "auctionID": "401627924879",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "1",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96509,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-03 07:33:50",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "stocke_duiu2255tcz@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "madden_82 hat eine Frage zu Artikelnr. 401627924879 gesendet(Angebotsende am 02.12.18 15:29:00 MEZ) – Jules Reygondand Paris Brass Vintage Lens",
+              "is_read": "0",
+              "MessageType": "AskSellerQuestion",
+              "QuestionType": "General",
+              "MessageID": "1819290416010",
+              "MessageStatus": "Unanswered",
+              "products_id": "31695",
+              "orders_id": null,
+              "auctionID": "401627924879",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96508,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-03 05:02:11",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "fanclu_jusy4827uit@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "fanclub sent a message about Rolleiflex SLX Medium Format Film Camera with Rollei HFT Distagon 4/50 mm #401621177165",
+              "is_read": "0",
+              "MessageType": "ContactTransactionPartner",
+              "QuestionType": "None",
+              "MessageID": "1837587698019",
+              "MessageStatus": "Unanswered",
+              "products_id": "31909",
+              "orders_id": "25903",
+              "auctionID": "401621177165",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96507,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-03 04:21:25",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "jerryt_kqd2146uez@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "I have a question about using my item or I want to send the seller a message: jerrythethunder sent a message about Nikon FA 35mm SLR Film Camera Black with Nikkor 2/50mm #253944175186",
+              "is_read": "0",
+              "MessageType": "ResponseToASQQuestion",
+              "QuestionType": "None",
+              "MessageID": "1809945623012",
+              "MessageStatus": "Unanswered",
+              "products_id": "31653",
+              "orders_id": "26004",
+              "auctionID": "253944175186",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96506,
+              "customers_id": "19280",
+              "email_id": "0",
+              "email_date": "2018-11-02 21:11:52",
+              "email_to": "lumic@o2.pl",
+              "email_from": "kostenko.trade@gmail.com",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "I have a question about using my item or I want to send the seller a message: jerrythethunder sent a message about Nikon FA 35mm SLR Film Camera Black with Nikkor 2/50mm #253944175186",
+              "is_read": "1",
+              "MessageType": "ResponseToASQQuestion",
+              "QuestionType": "None",
+              "MessageID": "1807377861017",
+              "MessageStatus": "Unanswered",
+              "products_id": "31653",
+              "orders_id": "26004",
+              "auctionID": "253944175186",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "1",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          },
+          {
+              "id": 96505,
+              "customers_id": "5957",
+              "email_id": "0",
+              "email_date": "2018-11-02 18:50:17",
+              "email_to": "kostenko.trade@gmail.com",
+              "email_from": "jerryt_kqd2146uez@members.ebay.co.uk",
+              "email_delivered_to": "kostenko.trade@gmail.com",
+              "email_subject": "I have a question about using my item or I want to send the seller a message: jerrythethunder sent a message about Nikon FA 35mm SLR Film Camera Black with Nikkor 2/50mm #253944175186",
+              "is_read": "0",
+              "MessageType": "ContactTransactionPartner",
+              "QuestionType": "None",
+              "MessageID": "1837046480019",
+              "MessageStatus": "Unanswered",
+              "products_id": "31653",
+              "orders_id": "26004",
+              "auctionID": "253944175186",
+              "is_delete": "0",
+              "LongMessageID": null,
+              "is_inbox": "0",
+              "is_view": "0",
+              "flags": "0",
+              "is_attach": "0",
+              "THRID": null
+          }
+      ];
+
+        // singe email
+        let email  = {
+          "id": 15606,
+          "customers_id": "8668",
+          "email_id": "0",
+          "email_date": "2013-10-16 22:57:49",
+          "email_to": "kostenko.trade@gmail.com",
+          "email_from": "13tof8_gunu6298sdf@members.ebay.co.uk",
+          "email_delivered_to": "kostenko.trade@gmail.com",
+
+          /*   space   */
+          "email_subject": "Retours : 13tof83 a envoyé un message concernant l'objet Leica Pola filter f. Summicron POOTR n° 281166881868",
+          "is_read": "1",
+          "MessageType": "ContactTransactionPartner",
+          "QuestionType": "None",
+          "MessageID": "692258917014",
+          "MessageStatus": "Answered",
+          "products_id": "20756",
+          "orders_id": "11832",
+          "auctionID": "281166881868",
+          "is_delete": "0",
+          "LongMessageID": "",
+          "is_inbox": "0",
+          "is_view": "1",
+          "flags": "0",
+          "is_attach": "0",
+          "THRID": "",
+          "email_body": {
+              "id": 15054,
+              "customers_email_id": "15606",
+              "email_body": "Hi,\r\nI well received this filter, which is i nice overall condition, but it shows some kind of slight yellowish discoloration on the glass edges, & the glass itself is nice + but not perfect as new; thus I'd like to ship you back the filter for refund: would you be Ok.\r\nAs you can see with my rating, I'm usually not that type of guy who always changes his mind; this is just I'm really looking for a Pootr that is in brand new condition with absolutely no flaws...\r\nKind rgds\r\nChris"
+          }
+      };
+
+        /* date computing */
+        let tmp = [];
+
+      statusHistory.forEach(function(item) {
+        tmp.push({
+          value: false,
+          date: item.date_added,
+          notified: item.customer_notified,
+          status: item.orders_status_id,
+          comments: item.comments
+        });
+      });
+
+      statusHistory = tmp;
+      tmp = [];
+
+      emails.forEach(function(item) {
+        tmp.push({
+          date: item.email_date,
+          from: item.email_from,
+          to: item.email_to,
+          read: item.is_read
+        });
+      })
+
+      emails = tmp;
+      tmp = null;
+
+      let start = function () {
+
+        Vue.component('ordertable', {
+            template: '#orderTable',
+            data () {
+              return {
+                snack: false,
+                snackColor: '',
+                snackText: '',
+                buttonSwitch: false,
+                tabledatacomputed: null,
+                rules: {
+                  max25chars: v => v.length <= 30 || 'Input too long!',
+                  required: value => !!value || 'Required.',
+                  email: value => {
+                  const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                  return pattern.test(value) || 'Invalid e-mail.'
+                }
+                },
+                pagination: {},
+                headers: [
+                  { text: null, value: 'date', sortable: false, value: 'tag_custom' },
+                  { text: 'Customer address', sortable: false, value: 'val_custom'},
+                  { text: 'Shipment address', sortable: false, value: 'tag_ship'},
+                  { text: null, value: 'date', sortable: false, value: 'val_ship' }
+              ],
+              tabledata: [
                 {
                   value: false,
                   tag_custom: "Name",
-                  val_custom: mainTableData[0].customers_name,
+                  val_custom: tabledatacomputed.data[0].customers_name,
                   tag_ship: "Name",
                   val_ship: ""
 
@@ -10,7 +1380,7 @@
                 {
                   value: false,
                   tag_custom: "Street",
-                  val_custom: mainTableData[0].customers_street_address,
+                  val_custom: tabledatacomputed.data[0].customers_street_address,
                   tag_ship: "Street",
                   val_ship: ""
                 },
@@ -18,31 +1388,398 @@
                   value: false,
                   tag_custom: "State",
                   val_custom: 'STATE',
-                  tag_ship: mainTableData[0].customers_state,
+                  tag_ship: tabledatacomputed.data[0].customers_state,
                   val_ship: ""
                 },
                 {
                   value: false,
                   tag_custom: "City",
-                  val_custom: mainTableData[0].customers_city,
+                  val_custom: tabledatacomputed.data[0].customers_city,
                   tag_ship: "City",
                   val_ship: ""
                 },
                 {
                   value: false,
                   tag_custom: "country | postcode",
-                  val_custom: mainTableData[0].customers_country + " | " + mainTableData[0].customers_postcode,
+                  val_custom: tabledatacomputed.data[0].customers_country + " | " + tabledatacomputed.data[0].customers_postcode,
                   tag_ship: "country | postcode",
                   val_ship: ""
                 },
                 {
                   value: false,
-                  tag_custom: mainTableData[0].customers_email_address,
+                  tag_custom: tabledatacomputed.data[0].customers_email_address,
                   val_custom: "xsyzxw@qq.com"
                 },
                 {
                   value: false,
                   tag_custom: "Telephone",
-                  val_custom: mainTableData[0].customers_telephone
+                  val_custom: tabledatacomputed.data[0].customers_telephone
                 }
               ]
+            }
+          },
+          methods: {
+            save () {
+              this.snack = true
+              this.snackColor = 'success'
+              this.snackText = 'Data saved'
+            },
+            copyleft () {
+              this.tabledata.forEach(function(item) {
+                if (item.val_ship !== undefined) {
+                  item.val_ship = item.val_custom;
+                }
+              });
+            },
+            dismiss () {
+              this.tabledata.forEach(function(item) {
+                if (item.val_ship !== undefined) {
+                  item.val_ship = "";
+                }
+              });
+            },
+        }, 
+        mounted () {
+              axios.defaults.headers.common['Authorization'] = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjczOGVhOWE4ZmZhN2E2OTE1ZjNiM2Y1NDRlYTQ5MTYwMGEzZWVjNDg3ZjQ0YjAzOTJhN2U2NGFlYjU5YjM2NTAzOTcyNzIzYWViNGJkM2Y5In0.eyJhdWQiOiI5IiwianRpIjoiNzM4ZWE5YThmZmE3YTY5MTVmM2IzZjU0NGVhNDkxNjAwYTNlZWM0ODdmNDRiMDM5MmE3ZTY0YWViNTliMzY1MDM5NzI3MjNhZWI0YmQzZjkiLCJpYXQiOjE1MzAwMzQ5NTYsIm5iZiI6MTUzMDAzNDk1NiwiZXhwIjoxNTYxNTcwOTU2LCJzdWIiOiIyIiwic2NvcGVzIjpbXX0.iP7EchzmwfmyfWT_YbJlWZ2slqI4Aj-F_9e_Ng62qpLrg3k-GfBulNwGwW29f0UQT2ZJM61AFAvbTJeDG_WOL51RGQkkZqmTEuICLb7KcTcUDcDRWjD7qXRTpk8f8ejHCtHmsnmHbkgA3E0NfJBSORncjxIypaqJZFqx5Ycft0cmOtpHaYohCx6Ryzs2bBh-3RUeExxDr13xuOtmB1sz46-vGPgiMdWu-qUGmk6ZAU9RLXSEC1hkA44PDZVKPD93GgrAPxD1o9P7aFVh6YYAVm3C0NseQ9m15PwxDxj79CDlK842HRPZP6I7Quq7XUDVqR_jvRuDZrohwsJp8oFndqfySe3uKeeE02--78iMJLGXERzu4ZR-KWyfSQecuvOO_PNq7E-wdnaQK5sQxdN2uOUzefEuXe8Tfgb0p2Xi9_pfhjy-5Dozi9Ny2gCtrIr05NMCZzd5vZi2aeZCZJ2AvOl1JNOfeuDJjh1HjEuditDNdI3UPWl0cwx5ClPLmxXGzULDYL2shXymdObsqkRkKbVoyulDb23QBELbzf-xDmBOHWkC4WBO4T1E7eHKwD0MFTwkcRtT3QDKwOJsfR8XJHIRgXNp99LzhoAf3U_Z64y7jm4hgZyTvr2VNt6bs3TaN1o4fmSMjWbBgSd3egjgTNb8nZ0M7gREpOnz8R_ExIM";;
+              axios
+                .get('https://admin.cameramate.com/api/orders/25624')
+                .then(response => (tabledatacomputed = response.data.data));
+        }
+      });
+
+      Vue.component('ordertablesecondary', {
+        template: '#orderTableSecondary',
+        data () {
+          return {
+            search: '',
+            total: 0,
+            headers: [
+              { text: 'ID', align: 'left', value: 'id' },
+              { text: 'Product', align: 'left' ,value: 'product' },
+              { text: 'Quantity', align: 'left', value: 'qantity' },
+              { text: 'Price', align: 'left', value: 'price' },
+              { text: 'Amount', align: 'left', value: 'amount' },
+              { text: null, sortable: false, value: null}
+            ],
+            desserts: [
+              {
+                value: false,
+                id: '1',
+                product: "Boyer Paris Topaz 3.5/35 mm Leica M Mount with coupling",
+                quantity: 1,
+                price: 4050,
+                amount: 4050
+              },
+              {
+                value: false,
+                id: 2 ,
+                product: "FED ZORKI C Rangefinder Camera with INDUSTAR-22 50 mm F/3.5",
+                quantity: 2,
+                price: 5625,
+                amount: 11250
+              }
+            ]
+          }
+        },
+        methods: {
+          deleteItem (item) {
+            const index = this.desserts.indexOf(item)
+            confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
+          },
+          ordersTotal: function () {
+            let res = 0;
+
+            this.desserts.forEach(function(item) {
+              res += item.amount;
+            })
+
+            return res;
+          }
+        }
+      });
+
+      Vue.component('ordereddatepicker', {
+        template: '#datePicker',
+         data: () => ({
+          date: "2018-09-10",
+          menu: false,
+          modal: false,
+          menu2: false
+        })
+      });
+      Vue.component('paiddatepicker', {
+        template: '#datePicker',
+         data: () => ({
+          date: "2018-09-10",
+          menu: false,
+          modal: false,
+          menu2: false
+        })
+      });
+      Vue.component('shippeddatepicker', {
+        template: '#datePicker',
+         data: () => ({
+          date: null,
+          menu: false,
+          modal: false,
+          menu2: false
+        })
+      });
+      Vue.component('cleareddatepicker', {
+        template: '#datePicker',
+         data: () => ({
+          date: null,
+          menu: false,
+          modal: false,
+          menu2: false
+        })
+      });
+      Vue.component('refundeddatepicker', {
+        template: '#datePicker',
+         data: () => ({
+          date: null,
+          menu: false,
+          modal: false,
+          menu2: false
+        })
+      });
+
+
+      Vue.component('ordergrid', {
+        template: '#orderGrid',
+        data () {
+          return {
+            paymentMethods: [
+              "PayPall",
+              "Webmoney"
+            ],
+            currencies: [
+              "EUR",
+              "CZK"
+            ],
+            statuses: [
+              "ordered",
+              "pinding",
+              "refunded"
+            ],
+            auction_accounts: [
+              "ebay.com-leica-post"
+            ],
+            paypalls: [
+              "6FSCZSD2345DACF123"
+            ]
+          }
+        }
+      });
+
+        /*status history*/
+        Vue.component('statushistorytable', {
+          template: '#statusHistoryTable',
+          data () {
+            return {
+              search: '',
+              headers: [
+                { text: 'Date added', value: 'date' },
+                { text: 'Customer notified', sortable: false, value: 'notified' },
+                { text: 'Status', value: 'status' },
+                { text: 'Comment', sortable: false, value: 'comments' }
+              ],
+              statushistorydata: statusHistory
+            }
+          }
+        });
+
+        /*emails component*/
+        Vue.component('emailstable', {
+          template: "#emailsTable",
+          data () {
+            return {
+              search: '',
+              headers: [
+                { text: 'Date', value: 'date' },
+                { text: 'From', value: 'from' },
+                { text: 'To', value: 'to' },
+                { text: 'Read', value: 'read' }
+              ],
+              emails: emails,
+              frame: {
+                loading: false,
+                body: email.email_body.email_body
+              }
+            }
+          },
+          methods: {
+          }
+        });
+
+        /*fedex stepper*/
+        Vue.component('fedexstepper', {
+          template: '#fedexStepper',
+          data () {
+            return {
+              e1: 1,
+              timestamp: "2018-10-22T00:00:00+02:00",
+              services: [
+                "International Economy",
+                "International First",
+                "International Priority",
+                "Priority Overnight"
+              ],
+              droptypes: [
+                "Regular Pickup",
+                "Request Curier"
+              ],
+              descriptions: [
+                "Old used",
+                "Old used Lens",
+                "Old used Cameras",
+                "Old used Accessories"
+              ],
+              countries: [
+                "DE",
+                "CH"
+              ],
+              currencies: [
+                "EUR",
+                "CZK"
+              ],
+              units: [
+                "CM"
+              ],
+              packtypes: [
+                "Your Packaging",
+                "FedEx Pak"
+              ],
+              unitsw: [
+                "KG"
+              ],
+              signaturetypes: [
+                "None specified",
+                "Direct signature required",
+                "Adult signature required"
+              ],
+              printers: [
+                "Laser",
+                "Fedex Zebra"
+              ]
+            }
+          }
+        });
+
+        new Vue({
+          el: '#app',
+          data: {
+            isActiv: true,
+            activetab: 1,
+            order: 25624,
+            emails_all: emails.length,
+            emails_active: 11
+          }
+        });
+
+    }
+
+    start();
+
+    });
+
+    
+  </script>
+
+  <style>
+    [v-cloak] {
+      display: none;
+    }
+
+    .tabs {
+        overflow: hidden;
+        margin-left: 20px;
+        margin-bottom: -2px; 
+    }
+
+    .tabs a {
+        color: #96999e;
+        float: left;
+        cursor: pointer;
+        padding: 12px;
+        transition: background-color 0.2s;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+        border-radius: 10px 10px 0 0;
+        font-weight: bold;
+    }
+
+    .tabs a:last-child { 
+        border-right: 1px solid #ccc;
+    }
+
+    .tabs a:hover {
+        text-decoration: none;
+        background-color: #aaa;
+        color: #fff;
+    }
+
+    .tabs a.active {
+        background-color: #fff;
+        color: #484848;
+        border-bottom: 2px solid #fff;
+        cursor: default;
+    }
+
+    .tabcontent {
+        padding: 0 10px 10px 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 3px 3px 6px #e1e1e1
+    }
+
+    .elevation-1 {
+        width: 71%;
+        float: left;
+    }
+
+    .v-table__overflow {
+        width: 100%;
+        border-right: lightgrey 1px solid;
+    }
+
+    .theme--light.v-table {
+        border-top: 1px solid lightgrey;
+    }
+
+    table.v-table thead th span.bold {
+        font-weight: bold;
+        font-size: 15px;
+    }
+
+    .theme--light.v-table thead th span.bold {
+        color: black;
+    }
+
+    .v-menu__activator .border-right {
+        border-right: lightgrey 1px solid;
+    }
+
+    .theme--light.v-subheader {
+        color: #403a3a;
+        font-weight: bold;
+    }
+
+    .container.wrap.fluid {
+        padding: 0;
+        margin: 0;
+        border-bottom: 1px solid lightgrey;
+    }
+
+    .theme--light.v-table thead th {
+        font-weight: bold;
+        color: rgba(0, 0, 0, 0.77);
+    }
+
+    .v-card__title {
+        color: black;
+        font-weight: bold;
+    }
+  </style>
+</body>
+</html>
