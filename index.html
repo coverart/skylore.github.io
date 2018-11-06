@@ -1343,99 +1343,109 @@
       let start = function () {
 
         Vue.component('ordertable', {
-  template: '#orderTable',
-  data () {
-    return {
-      snack: false,
-      snackColor: '',
-      snackText: '',
-      buttonSwitch: false,
-      rules: {
-        max25chars: v => v.length <= 30 || 'Input too long!',
-        required: value => !!value || 'Required.',
-        email: value => {
-        const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        return pattern.test(value) || 'Invalid e-mail.'
-      }
-      },
-      pagination: {},
-      headers: [
-        { text: null, value: 'date', sortable: false, value: 'tag_custom' },
-        { text: 'Customer address', sortable: false, value: 'val_custom'},
-        { text: 'Shipment address', sortable: false, value: 'tag_ship'},
-        { text: null, value: 'date', sortable: false, value: 'val_ship' }
-    ],
-    tabledata: [
-      {
-        value: false,
-        tag_custom: "Name",
-        val_custom: 'lilongteng',
-        tag_ship: "Name",
-        val_ship: ""
+            template: '#orderTable',
+            data () {
+              return {
+                snack: false,
+                snackColor: '',
+                snackText: '',
+                buttonSwitch: false,
+                rules: {
+                  max25chars: v => v.length <= 30 || 'Input too long!',
+                  required: value => !!value || 'Required.',
+                  email: value => {
+                  const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                  return pattern.test(value) || 'Invalid e-mail.'
+                }
+                },
+                pagination: {},
+                headers: [
+                  { text: null, value: 'date', sortable: false, value: 'tag_custom' },
+                  { text: 'Customer address', sortable: false, value: 'val_custom'},
+                  { text: 'Shipment address', sortable: false, value: 'tag_ship'},
+                  { text: null, value: 'date', sortable: false, value: 'val_ship' }
+              ],
+              tabledata: [
+                {
+                  value: false,
+                  tag_custom: "Name",
+                  val_custom: 'lilongteng',
+                  tag_ship: "Name",
+                  val_ship: ""
 
-      },
-      {
-        value: false,
-        tag_custom: "Street",
-        val_custom: 'XINHUA NEWS AGENCY',
-        tag_ship: "Street",
-        val_ship: ""
-      },
-      {
-        value: false,
-        tag_custom: "State",
-        val_custom: 'STATE',
-        tag_ship: "State",
-        val_ship: ""
-      },
-      {
-        value: false,
-        tag_custom: "City",
-        val_custom: 'beijing',
-        tag_ship: "City",
-        val_ship: ""
-      },
-      {
-        value: false,
-        tag_custom: "country | postcode",
-        val_custom: 'china 1000803',
-        tag_ship: "country | postcode",
-        val_ship: ""
-      },
-      {
-        value: false,
-        tag_custom: "E-Mail",
-        val_custom: "xsyzxw@qq.com"
-      },
-      {
-        value: false,
-        tag_custom: "Telephone",
-        val_custom: '892344444442'
-      }
-    ]
-  }
-},
+                },
+                {
+                  value: false,
+                  tag_custom: "Street",
+                  val_custom: 'XINHUA NEWS AGENCY',
+                  tag_ship: "Street",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "State",
+                  val_custom: 'STATE',
+                  tag_ship: "State",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "City",
+                  val_custom: 'beijing',
+                  tag_ship: "City",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "country | postcode",
+                  val_custom: 'china 1000803',
+                  tag_ship: "country | postcode",
+                  val_ship: ""
+                },
+                {
+                  value: false,
+                  tag_custom: "E-Mail",
+                  val_custom: "xsyzxw@qq.com"
+                },
+                {
+                  value: false,
+                  tag_custom: "Telephone",
+                  val_custom: '892344444442'
+                }
+              ]
+            }
+          },
           methods: {
-          save () {
-            this.snack = true
-            this.snackColor = 'success'
-            this.snackText = 'Data saved'
+            save () {
+              this.snack = true
+              this.snackColor = 'success'
+              this.snackText = 'Data saved'
+            },
+            copyleft () {
+              this.tabledata.forEach(function(item) {
+                if (item.val_ship !== undefined) {
+                  item.val_ship = item.val_custom;
+                }
+              });
+            },
+            dismiss () {
+              this.tabledata.forEach(function(item) {
+                if (item.val_ship !== undefined) {
+                  item.val_ship = "";
+                }
+              });
+            }
           },
-          copyleft () {
-            this.tabledata.forEach(function(item) {
-              if (item.val_ship !== undefined) {
-                item.val_ship = item.val_custom;
-              }
-            });
-          },
-          dismiss () {
-            this.tabledata.forEach(function(item) {
-              if (item.val_ship !== undefined) {
-                item.val_ship = "";
-              }
-            });
+          beforeCreated () {
+            axios.
+            axios
+              .get('https://admin.cameramate.com/api/orders/25624', {
+                 headers: {
+                   Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjczOGVhOWE4ZmZhN2E2OTE1ZjNiM2Y1NDRlYTQ5MTYwMGEzZWVjNDg3ZjQ0YjAzOTJhN2U2NGFlYjU5YjM2NTAzOTcyNzIzYWViNGJkM2Y5In0.eyJhdWQiOiI5IiwianRpIjoiNzM4ZWE5YThmZmE3YTY5MTVmM2IzZjU0NGVhNDkxNjAwYTNlZWM0ODdmNDRiMDM5MmE3ZTY0YWViNTliMzY1MDM5NzI3MjNhZWI0YmQzZjkiLCJpYXQiOjE1MzAwMzQ5NTYsIm5iZiI6MTUzMDAzNDk1NiwiZXhwIjoxNTYxNTcwOTU2LCJzdWIiOiIyIiwic2NvcGVzIjpbXX0.iP7EchzmwfmyfWT_YbJlWZ2slqI4Aj-F_9e_Ng62qpLrg3k-GfBulNwGwW29f0UQT2ZJM61AFAvbTJeDG_WOL51RGQkkZqmTEuICLb7KcTcUDcDRWjD7qXRTpk8f8ejHCtHmsnmHbkgA3E0NfJBSORncjxIypaqJZFqx5Ycft0cmOtpHaYohCx6Ryzs2bBh-3RUeExxDr13xuOtmB1sz46-vGPgiMdWu-qUGmk6ZAU9RLXSEC1hkA44PDZVKPD93GgrAPxD1o9P7aFVh6YYAVm3C0NseQ9m15PwxDxj79CDlK842HRPZP6I7Quq7XUDVqR_jvRuDZrohwsJp8oFndqfySe3uKeeE02--78iMJLGXERzu4ZR-KWyfSQecuvOO_PNq7E-wdnaQK5sQxdN2uOUzefEuXe8Tfgb0p2Xi9_pfhjy-5Dozi9Ny2gCtrIr05NMCZzd5vZi2aeZCZJ2AvOl1JNOfeuDJjh1HjEuditDNdI3UPWl0cwx5ClPLmxXGzULDYL2shXymdObsqkRkKbVoyulDb23QBELbzf-xDmBOHWkC4WBO4T1E7eHKwD0MFTwkcRtT3QDKwOJsfR8XJHIRgXNp99LzhoAf3U_Z64y7jm4hgZyTvr2VNt6bs3TaN1o4fmSMjWbBgSd3egjgTNb8nZ0M7gREpOnz8R_ExIM'
+                 }
+              })
+              .then(response => (console.log(response.data)));
           }
-        }
       });
 
       Vue.component('ordertablesecondary', {
