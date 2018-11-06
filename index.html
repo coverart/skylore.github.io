@@ -1369,7 +1369,31 @@
                   { text: 'Shipment address', sortable: false, value: 'tag_ship'},
                   { text: null, value: 'date', sortable: false, value: 'val_ship' }
               ],
-              tabledata: [
+              tabledata: null
+            }
+          },
+          methods: {
+          save () {
+            this.snack = true
+            this.snackColor = 'success'
+            this.snackText = 'Data saved'
+          },
+          copyleft () {
+            this.tabledata.forEach(function(item) {
+              if (item.val_ship !== undefined) {
+                item.val_ship = item.val_custom;
+              }
+            });
+          },
+          dismiss () {
+            this.tabledata.forEach(function(item) {
+              if (item.val_ship !== undefined) {
+                item.val_ship = "";
+              }
+            });
+          },
+          dataDef (mainTableData) {
+              let tmp = [
                 {
                   value: false,
                   tag_custom: "Name",
@@ -1416,28 +1440,9 @@
                   tag_custom: "Telephone",
                   val_custom: mainTableData[0].customers_telephone
                 }
-              ]
-            }
-          },
-          methods: {
-          save () {
-            this.snack = true
-            this.snackColor = 'success'
-            this.snackText = 'Data saved'
-          },
-          copyleft () {
-            this.tabledata.forEach(function(item) {
-              if (item.val_ship !== undefined) {
-                item.val_ship = item.val_custom;
-              }
-            });
-          },
-          dismiss () {
-            this.tabledata.forEach(function(item) {
-              if (item.val_ship !== undefined) {
-                item.val_ship = "";
-              }
-            });
+              ];
+
+              this.tabledata = tmp;
           }
         },
         mounted() {
