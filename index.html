@@ -1668,9 +1668,14 @@
           },
           created: function() {
             alert("created");
-            this.$http.get('https://admin.cameramate.com/api/orders/25624').then((response) {
-              console.log(response);
-            });
+            this.$http.get('https://admin.cameramate.com/api/orders/25624').then(
+            function (response) { // Success.
+                console.log(response.data);
+                },
+            function (response) { // Error.
+                    console.log('An error occurred.');
+                }
+            );
           }
         });
 
