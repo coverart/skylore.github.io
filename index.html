@@ -26,7 +26,7 @@
     <v-app>
       <v-content >
         <div v-if="isActiv">  
-          <div class="tabs" v-if="mounted">
+          <div class="tabs" v-cloak>
             <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Order - {{ order }}</a>
             <a v-on:click="activetab=2" v-bind:class="[ activetab === 2 ? 'active' : '' ]">Status history</a>
             <a v-on:click="activetab=3" v-bind:class="[ activetab === 3 ? 'active' : '' ]">Buyer History</a>
@@ -1661,15 +1661,10 @@
           el: '#app',
           data: {
             isActiv: true,
-            mounted: false,
             activetab: 1,
             order: 25624,
             emails_all: emails.length,
             emails_active: 11
-          },
-          created () {
-            mounted: true;
-            console.log("mounted");
           }
         });
 
