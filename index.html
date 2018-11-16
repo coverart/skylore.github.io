@@ -1906,7 +1906,7 @@
                   {
                     value: false,
                     tag_custom: "Name",
-                    val_custom: 'lilongteng',
+                    val_custom: '',
                     tag_ship: "Name",
                     val_ship: ""
 
@@ -1914,29 +1914,29 @@
                   {
                     value: false,
                     tag_custom: "Street",
-                    val_custom: 'XINHUA NEWS AGENCY',
+                    val_custom: '',
                     tag_ship: "Street",
                     val_ship: ""
                   },
                   {
                     value: false,
                     tag_custom: "State",
-                    val_custom: 'STATE',
+                    val_custom: '',
                     tag_ship: "State",
                     val_ship: ""
                   },
                   {
                     value: false,
                     tag_custom: "City",
-                    val_custom: 'beijing',
+                    val_custom: '',
                     tag_ship: "City",
                     val_ship: ""
                   },
                   {
                     value: false,
                     tag_custom: "country | postcode",
-                    val_custom_country: 'china',
-                    val_custom_post: '1000803',
+                    val_custom_country: '',
+                    val_custom_post: '',
                     tag_ship: "country | postcode",
                     val_ship_country: "",
                     val_ship_post: ""
@@ -1944,12 +1944,12 @@
                   {
                     value: false,
                     tag_custom: "E-Mail",
-                    val_custom: "xsyzxw@qq.com"
+                    val_custom: ""
                   },
                   {
                     value: false,
                     tag_custom: "Telephone",
-                    val_custom: '892344444442'
+                    val_custom: ''
                   }
                 ];
 
@@ -1957,14 +1957,15 @@
               axios
                 .get('https://admin.cameramate.com/api/orders/25624')
                 .then(response => (
-                  tmp[0].val_custom = response.data.data[0].customer.customers_firstname,
-                  tmp[1].val_custom = response.data.data[0].billing_street_address,
-                  tmp[2].val_custom = response.data.data[0].billing_state,
-                  tmp[3].val_custom = response.data.data[0].billing_city,
-                  tmp[4].val_custom_country = response.data.data[0].billing_country,
-                  tmp[4].val_custom_post = response.data.data[0].billing_postcode,
-                  tmp[5].val_custom = response.data.data[0].customers_email_address,
-                  tmp[6].val_custom = response.data.data[0].customer.customers_telephone,
+                  let tempdata = response.data.data[0],
+                  tmp[0].val_custom = tempdata.customer.customers_firstname,
+                  tmp[1].val_custom = tempdata.billing_street_address,
+                  tmp[2].val_custom = tempdata.billing_state,
+                  tmp[3].val_custom = tempdatatempdata.billing_city,
+                  tmp[4].val_custom_country = tempdata.billing_country,
+                  tmp[4].val_custom_post = tempdata.billing_postcode,
+                  tmp[5].val_custom = tempdata.customers_email_address,
+                  tmp[6].val_custom = tempdata.customer.customers_telephone,
                   this.$refs.ordermain.loading = false, 
                   this.$refs.ordermain.tabledata = tmp, 
                   console.log(response.data.data[0])));
