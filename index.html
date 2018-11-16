@@ -1666,7 +1666,7 @@
           Vue.component('ordereddatepicker', {
           template: '#datePicker',
            data: () => ({
-            date: "2018-09-10",
+            date: null,
             menu: false,
             modal: false,
             menu2: false
@@ -1675,7 +1675,7 @@
           Vue.component('paiddatepicker', {
             template: '#datePicker',
              data: () => ({
-              date: "2018-09-10",
+              date: null,
               menu: false,
               modal: false,
               menu2: false
@@ -1963,12 +1963,12 @@
                   tmp[0].val_custom = tempdata.customer.customers_firstname,
                   tmp[1].val_custom = tempdata.billing_street_address,
                   tmp[2].val_custom = tempdata.billing_state,
-                  tmp[3].val_custom = tempdatatempdata.billing_city,
+                  tmp[3].val_custom = tempdata.billing_city,
                   tmp[4].val_custom_country = tempdata.billing_country,
                   tmp[4].val_custom_post = tempdata.billing_postcode,
                   tmp[5].val_custom = tempdata.customers_email_address,
                   tmp[6].val_custom = tempdata.customer.customers_telephone,
-
+/*                  this.$refs.orderedpkr.data = tempdata.*/
                   this.$refs.ordermain.loading = false, 
                   this.$refs.ordermain.tabledata = tmp,
                   console.log(response.data.data[0])));
