@@ -21,7 +21,8 @@
   <script src="https://cdn.jsdelivr.net/npm/vuetify/dist/vuetify.js"></script>
 </head>
 <body>
-
+  
+  <!-- Main App -->
   <div id="app" v-cloak >
     <v-app>
       <v-content >
@@ -38,7 +39,7 @@
                 </v-flex>
       
                   <div sm4>
-                    <v-btn flat color="success">Save</v-btn>
+                    <v-btn flat color="success" v-on:click="valid()">Save</v-btn>
                   </div>
                   <div>
                     <v-btn flat v-on:click="isActiv = !isActiv" color="error">Close</v-btn>
@@ -48,7 +49,7 @@
 
           <div class="content">
             <div v-if="activetab === 1" class="tabcontent">
-              <ordertable></ordertable>
+              <ordertable ref="ordermain"></ordertable>
               <ordergrid></ordergrid>
             </div>
             <div v-if="activetab === 2" class="tabcontent">
@@ -85,7 +86,7 @@
   </div>
   
   <!-- order table -->
-  <template id="orderTable">
+  <template id="orderTable" >
     <div>
       <v-data-table
         :headers="headers"
@@ -93,29 +94,51 @@
         hide-actions
         class="elevation-1"
       > 
-        <template slot="headerCell" slot-scope="props">
+        <template slot="headerCell" slot-scope="props"> 
           <span class="bold">{{ props.header.text }}</span>
           <v-btn small v-if="props.header.text == 'Shipment address' && !buttonSwitch" v-on:click="copyleft(), buttonSwitch = !buttonSwitch" >copy left</v-btn>
           <v-btn small v-if="props.header.text == 'Shipment address' && buttonSwitch" v-on:click="dismiss(), buttonSwitch = !buttonSwitch" >dismiss</v-btn>
         </template>
         <template slot="items" slot-scope="props">
-          <th width="5%">{{ props.item.tag_custom }}</th>
-          <td width="25%" class="text-xs-left border-right">
+          <th width="20%">{{ props.item.tag_custom }}</th>
+          <td width="30%" class="text-xs-left border-right">
 
             <v-edit-dialog
               :return-value.sync="props.item.val_custom"
               lazy
-              @save="save"
-            > {{ props.item.val_custom }}
-            <v-text-field
-              slot="input"
-              v-model="props.item.val_custom"
-              :rules="[rules.required, rules.max25chars]"
-              label="Edit"
-              single-line
-              counter
-              v-if="props.item.tag_custom !== 'E-Mail'"
-            ></v-text-field>
+              @save="save">
+            <span v-if="props.item.tag_custom !== 'country | postcode'">
+              {{ props.item.val_custom }}
+            </span> 
+            <span v-else>
+              {{ props.item.val_custom_country }}  {{ props.item.val_custom_post }}
+            </span>
+            <div slot="input" v-if="props.item.tag_custom == 'country | postcode'">
+              <v-flex xs6 sm6 d-inline-flex>
+                <v-select
+                  v-model="props.item.val_custom_country"
+                  :items="countries"
+                ></v-select>
+              </v-flex>
+              <v-flex xs6 sm6 d-inline-flex>
+                <v-text-field
+                  v-model="props.item.val_custom_post"
+                  :rules="[rules.required, rules.max25chars]"
+                  label="Edit"
+                  single-line
+                  counter
+                ></v-text-field>
+              </v-flex>
+            </div>
+                <v-text-field
+                  slot="input"
+                  v-model="props.item.val_custom"
+                  :rules="[rules.required, rules.max25chars]"
+                  label="Edit"
+                  single-line
+                  counter
+                  v-if="props.item.tag_custom !== 'E-Mail' && props.item.tag_custom !== 'country | postcode'"
+                ></v-text-field>
             <v-text-field
               slot="input"
               v-model="props.item.val_custom"
@@ -123,12 +146,11 @@
               label="Edit"
               single-line
               counter
-              v-else
+              v-if="props.item.tag_custom === 'E-Mail'"
             ></v-text-field>
-
           </td>
-          <th class="text-xs-left" width="1%">{{ props.item.tag_ship }}</th>
-          <td class="text-xs-left" width="25%">
+          <th width="20%" class="custom_width">{{ props.item.tag_ship }}</th>
+          <td class="text-xs-left" width="30%">
             <v-edit-dialog
               :return-value.sync="props.item.val_ship "
               lazy
@@ -144,7 +166,6 @@
               v-if="props.item.tag_ship !== 'E-Mail' && 
               props.item.tag_ship !== undefined && props.item.tag_ship != undefined"
             ></v-text-field>
-          
           </td>
         </template>
       </v-data-table>
@@ -152,7 +173,6 @@
         {{ snackText }}
         <v-btn flat @click="snack = false">Close</v-btn>
       </v-snackbar>
-
       <ordertablesecondary></ordertablesecondary>
     </div>
   </template>
@@ -161,7 +181,7 @@
   <template id="orderGrid">
     <v-container wrap fluid>
 
-      <v-layout row>
+      <v-layout row class="compressed">
         <v-flex xs4>
           <v-subheader>Payment method</v-subheader>
         </v-flex>
@@ -173,7 +193,7 @@
         </v-flex>
       </v-layout>
 
-      <v-layout row>
+      <v-layout row class="compressed">
         <v-flex xs4>
           <v-subheader>Currency</v-subheader>
         </v-flex>
@@ -185,7 +205,7 @@
         </v-flex>
       </v-layout>
 
-      <v-layout row>
+      <v-layout row class="compressed">
         <v-flex xs4>
           <v-subheader>Status</v-subheader>
         </v-flex>
@@ -196,48 +216,7 @@
           ></v-select>
         </v-flex>
       </v-layout>
-
-      <v-layout row>
-        <v-flex xs4>
-          <v-subheader>Ordered</v-subheader>
-        </v-flex>
-        <v-flex xs8>
-          <ordereddatepicker></ordereddatepicker>
-        </v-flex>
-      </v-layout>
-      <v-layout row>
-        <v-flex xs4>
-          <v-subheader>Paid</v-subheader>
-        </v-flex>
-        <v-flex xs8>
-          <paiddatepicker></paiddatepicker>
-        </v-flex>
-      </v-layout>
-      <v-layout row>
-        <v-flex xs4>
-          <v-subheader>Shipped</v-subheader>
-        </v-flex>
-        <v-flex xs8>
-          <shippeddatepicker></shippeddatepicker>
-        </v-flex>
-      </v-layout>
-      <v-layout row>
-        <v-flex xs4>
-          <v-subheader>Cleared</v-subheader>
-        </v-flex>
-        <v-flex xs8>
-          <cleareddatepicker></cleareddatepicker>
-        </v-flex>
-      </v-layout>
-      <v-layout row>
-        <v-flex xs4>
-          <v-subheader>Refunded</v-subheader>
-        </v-flex>
-        <v-flex xs8>
-          <refundeddatepicker></refundeddatepicker>
-        </v-flex>
-      </v-layout>
-      <v-layout row>
+      <v-layout row class="compressed">
         <v-flex xs4>
           <v-subheader>Auction account</v-subheader>
         </v-flex>
@@ -248,15 +227,54 @@
           ></v-select>
         </v-flex>
       </v-layout>
-      <v-layout row>
+      <v-layout row class="compressed">
         <v-flex xs4>
           <v-subheader>PayPal Id</v-subheader>
         </v-flex>
         <v-flex xs8>
-          <v-select
-            :items="paypalls"
+          <v-text-field
             prepend-icon="payment"
-          ></v-select>
+          ></v-text-field>
+        </v-flex>
+      </v-layout>
+            <v-layout row class="compressed">
+        <v-flex xs4>
+          <v-subheader>Ordered</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <ordereddatepicker></ordereddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row class="compressed">
+        <v-flex xs4>
+          <v-subheader>Paid</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <paiddatepicker></paiddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row class="compressed">
+        <v-flex xs4>
+          <v-subheader>Shipped</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <shippeddatepicker></shippeddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row class="compressed">
+        <v-flex xs4>
+          <v-subheader>Cleared</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <cleareddatepicker></cleareddatepicker>
+        </v-flex>
+      </v-layout>
+      <v-layout row class="compressed">
+        <v-flex xs4>
+          <v-subheader>Refunded</v-subheader>
+        </v-flex>
+        <v-flex xs8>
+          <refundeddatepicker></refundeddatepicker>
         </v-flex>
       </v-layout>
     </v-container>
@@ -265,7 +283,7 @@
   <!-- date picker -->
   <template id="datePicker">
     <v-layout row wrap>
-      <v-flex xs12 sm3 md11>
+      <v-flex xs12 sm11 md11>
         <v-menu
           ref="menu"
           :close-on-content-click="false"
@@ -297,30 +315,67 @@
   <!-- order table secondary -->
   <template id="orderTableSecondary">
     <v-card>
-    <v-card-title class="elevation-1">
-      Ordered products
-      <v-spacer></v-spacer>
-      <v-text-field
-        v-model="search"
-        append-icon="search"
-        label="Search"
-        single-line
-        hide-details
-      ></v-text-field>
-    </v-card-title>
       <v-data-table
         :headers="headers"
-        :items="desserts"
+        :items="products"
         :search="search"
         class="elevation-1"
-      >
+      > 
+        <template slot="headerCell" slot-scope="props">
+          <div v-if="props.header.text == null">
+            
+            <v-dialog v-model="dialog" max-width="500px">
+              <v-icon big slot="activator"> add_box </v-icon>
+              <v-card>
+                <v-card-title>
+                  <span class="headline">{{ formTitle }}</span>
+                </v-card-title>
+
+                <v-card-text>
+                  <v-container grid-list-md>
+                    <v-layout wrap>
+                      <v-flex xs12 sm6 md4>
+                        <v-text-field v-model="editedItem.id" label="ID"></v-text-field>
+                      </v-flex>
+                      <v-flex xs12 sm6 md4>
+                        <v-text-field v-model="editedItem.product" label="Product"></v-text-field>
+                      </v-flex>
+                      <v-flex xs12 sm6 md4>
+                        <v-text-field v-model="editedItem.quantity" label="Quantity"></v-text-field>
+                      </v-flex>
+                      <v-flex xs12 sm6 md4>
+                        <v-text-field v-model="editedItem.price" label="Price"></v-text-field>
+                      </v-flex>
+                    </v-layout>
+                  </v-container>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" flat @click.native="close">Cancel</v-btn>
+                  <v-btn color="blue darken-1" flat @click.native="save">Save</v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </div>
+          <span v-else>
+            {{ props.header.text }}
+          </span>
+        </template>
         <template slot="items" slot-scope="props">
           <td>{{ props.item.id }}</td>
           <td class="text-xs-left">{{ props.item.product }}</td>
           <td class="text-xs-left">{{ props.item.quantity }}</td>
           <td class="text-xs-left">{{ props.item.price }}</td>
-          <td class="text-xs-left">{{ props.item.amount }}</td>
-          <td class="justify-center" width="5%">
+          <td class="text-xs-left">{{ props.item.price * props.item.quantity }}</td>
+          <td class="justify-center" width="7%">
+            <v-icon
+            small
+            class="mr-2"
+            @click="editItem(props.item)"
+          >
+            edit
+          </v-icon>
             <v-icon
               small
               @click="deleteItem(props.item)"
@@ -415,13 +470,43 @@
                  <v-progress-linear :indeterminate="true" v-if="frame.loading"></v-progress-linear>
                  <v-layout v-else> 
                     <v-flex xs2>
-                      <v-img
-                        aspect-ratio="1"
-                        class="grey lighten-2"
-                      >
+                      img here
+                     <!--  <v-img
+                       aspect-ratio="1"
+                       class="grey lighten-2"
+                     > -->
                     </v-flex>
                     <v-flex xs10>                  
                       <span v-html="frame.body"></span>
+                    </v-flex>
+                    <v-flex align-self-end>
+                      <v-dialog v-model="dialog" width="500">
+                        <v-btn slot="activator" color="primary lighten-2" dark>Answer</v-btn>
+                          <v-card>
+                              <v-card-title class="grey lighten-2" primary-title>{{props.item.from}}</v-card-title>
+                              <v-card-text>
+                                <div v-if="!dialog_loader">
+                                  <v-textarea
+                                    name="emailbody"
+                                    v-model="embody"
+                                  ></v-textarea>
+                                </div>
+                                <div v-else class="text-xs-center">
+                                  <v-progress-circular
+                                    indeterminate
+                                    :size="70"
+                                    color="primary"
+                                  ></v-progress-circular>
+                                </div>
+                              </v-card-text>
+                              <v-divider></v-divider>
+                              <v-card-actions>
+                                <v-spacer></v-spacer>
+                                <v-btn color="red darken-1" flat @click.native="dialog = false">Cancel</v-btn>
+                                <v-btn color="green darken-1" flat @click="send(props.item.from)">Send</v-btn>
+                            </v-card-actions>
+                        </v-card>
+                      </v-dialog>
                     </v-flex>
                  </v-layout>
               </v-card>
@@ -486,6 +571,33 @@
                 ></v-select>
               </v-flex>
             </v-layout>
+
+            <v-layout row justify-space-around>
+              <v-flex xs3>
+                <v-select
+                  :items="currencies"
+                  v-model="currency"
+                  label="Currency"
+                >
+                </v-select>
+              </v-flex>
+              <v-flex xs3>
+                <v-select
+                  :items="unitsw"
+                  v-model="weightunit"
+                  label="Weight units"
+                >
+                </v-select>
+              </v-flex>
+              <v-flex xs3>
+                <v-select
+                  :items="units"
+                  v-model="lengthunit"
+                  label="Length units"
+                >
+                </v-select>
+              </v-flex>
+            </v-layout>
           </v-container>
         
           <v-btn
@@ -494,8 +606,6 @@
           >
             Continue
           </v-btn>
-        
-          <v-btn flat>Cancel</v-btn>
         </v-stepper-content>
         
         <!-- step 2 -->
@@ -571,8 +681,6 @@
           >
             Continue
           </v-btn>
-        
-          <v-btn flat>Cancel</v-btn>
         </v-stepper-content>
         
         <!-- step 3 -->
@@ -605,21 +713,23 @@
                     clearable
                   ></v-text-field>
                 </v-flex>
-        
                 <v-flex xs12 sm6 md3>
                   <v-layout row>
                     <v-flex xs10>
                       <v-text-field
+                        type="number"
+                        reverse
                         label="Customs Price"
-                        value="3000.00"
+                        v-model="customs_price"
                         clearable
                       ></v-text-field>
                     </v-flex>
+                    <v-divider></v-divider>
                     <v-flex xs2>
-                      <v-select 
-                        :items="currencies" 
-                        value="EUR"
-                      ></v-select>
+                      <v-text-field
+                        :value="currency"
+                        readonly
+                      ></v-text-field>
                     </v-flex>
                   </v-layout>
                 </v-flex>
@@ -628,41 +738,45 @@
                   <v-layout row>
                     <v-flex xs10>
                       <v-text-field
+                        type="number"
+                        reverse
                         label="Insured Price"
-                        value="0"
-                        clearable
+                        v-model="insured_price"
                       ></v-text-field>
                     </v-flex>
                     <v-flex xs2>
-                      <v-select 
-                        :items="currencies" 
-                        value="EUR"
-                      ></v-select>
+                      <v-text-field
+                        :value="currency"
+                        readonly
+                      ></v-text-field>
                     </v-flex>
                   </v-layout>
                 </v-flex>
         
                 <v-flex xs12 sm6 md3>
                   <v-text-field
+                    type="number"
+                    reverse
                     label="Quantity"
-                    value="1"
-                    clearable
+                    v-model="quantity"
                   ></v-text-field>
                 </v-flex>
         
                 <v-flex xs12 sm6 md3>
                   <v-text-field
+                    type="number"
+                    reverse
                     label="Pieces"
-                    value="1"
-                    clearable
+                    v-model="pieces"
                   ></v-text-field>
                 </v-flex>
         
                 <v-flex xs12 sm6 md3>
                   <v-text-field
+                    type="number"
+                    reverse
                     label="Weight"
-                    value="3.00"
-                    clearable
+                    v-model="weight"
                   ></v-text-field>
                 </v-flex>
         
@@ -676,8 +790,6 @@
           >
             Continue
           </v-btn>
-
-          <v-btn flat>Cancel</v-btn>
         </v-stepper-content>
         <!-- step 4 -->
         <v-stepper-content step="4">
@@ -688,99 +800,82 @@
                   <v-layout row>
                     <v-flex xs10>
                       <v-text-field
+                        type="number"
+                        reverse
                         label="Total Customs Price"
-                        value="3000.00"
-                        clearable
+                        v-model="totalprice()"
+                        readonly
                       ></v-text-field>
                     </v-flex>
                     <v-flex xs2>
-                      <v-select 
-                        :items="currencies" 
-                        value="EUR"
-                      ></v-select>
+                      <v-text-field
+                        :value="currency"
+                        readonly
+                      ></v-text-field>
+                    </v-flex>
+                  </v-layout>
+                </v-flex>
+                <v-flex xs12 sm6 md3>
+                  <v-layout row>
+                    <v-flex xs10>
+                      <v-text-field
+                        type="number"
+                        reverse
+                        label="Total Insured Price"
+                        v-model="totalinsured()"
+                        readonly
+                      ></v-text-field>
+                    </v-flex>
+                    <v-flex xs2>
+                      <v-text-field
+                        :value="currency"
+                        readonly
+                      ></v-text-field>
                     </v-flex>
                   </v-layout>
                 </v-flex>
 
                 <v-flex xs12 sm6 md3>
                   <v-select
-                    :items="units"
-                    value="CM"
-                    label="Units"
-                    clearable
-                  ></v-select>
-                </v-flex>
-
-                <v-flex xs12 sm6 md3>
-                  <v-layout row>
-                    <v-flex xs10>
-                      <v-text-field
-                        label="Total Insured Price"
-                        value="0"
-                        clearable
-                      ></v-text-field>
-                    </v-flex>
-                    <v-flex xs2>
-                      <v-select 
-                        :items="currencies" 
-                        value="EUR"
-                      ></v-select>
-                    </v-flex>
-                  </v-layout>
-                </v-flex>
-
-                <v-flex xs12 sm6 md3>
-                  <v-text-field
                     label="Packaging Type"
                     :items="packtypes"
                     value="Your Packaging"
-                    clearable
-                  ></v-text-field>
-                </v-flex>
-        
-                <v-flex xs12 sm6 md3>
-                  <v-text-field
-                    label="Total Weight"
-                    value="3.00"
-                    clearable
-                  ></v-text-field>
-                </v-flex>
-        
-                <v-flex xs12 sm6 md3>
-                  <v-text-field
-                    label="Length"
-                    color="red"
-                    append-icon="priority_high"
-                    clearable
-                  ></v-text-field>
-                </v-flex>
-        
-                <v-flex xs12 sm6 md3>
-                  <v-text-field
-                    label="Width"
-                    color="red"
-                    append-icon="priority_high"
-                    clearable
-                  ></v-text-field>
-                </v-flex>
-        
-                <v-flex xs12 sm6 md3>
-                  <v-text-field
-                    label="Height"
-                    color="red"
-                    append-icon="priority_high"
-                    clearable
-                  ></v-text-field>
-                </v-flex>
-
-                <v-flex xs12 sm6 md3>
-                  <v-select 
-                    label="Units"
-                    :items="unitsw" 
-                    value="KG"
                   ></v-select>
                 </v-flex>
-
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    type="number"
+                    reverse
+                    label="Total Weight"
+                    v-model="totalweight()"
+                    readonly
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    type="number"
+                    label="Length"
+                    background-color="#afceff"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    type="number"
+                    label="Width"
+                    background-color="#afceff"
+                  ></v-text-field>
+                </v-flex>
+        
+                <v-flex xs12 sm6 md3>
+                  <v-text-field
+                    type="number" 
+                    label="Height"
+                    background-color="#afceff"
+                  ></v-text-field>
+                </v-flex>
                 <v-flex xs12 sm6 md3>
                   <v-select
                     value="None specified"
@@ -800,7 +895,7 @@
                 <v-select
                   :items="printers"
                   label="Printer"
-                  outline
+                  backgroung-color="#1976d2"
                 ></v-select>
               </v-flex>
             </v-layout>
@@ -1315,35 +1410,36 @@
         /* date computing */
         let tmp = [];
 
-      statusHistory.forEach(function(item) {
-        tmp.push({
-          value: false,
-          date: item.date_added,
-          notified: item.customer_notified,
-          status: item.orders_status_id,
-          comments: item.comments
+        statusHistory.forEach(function(item) {
+          tmp.push({
+            value: false,
+            date: item.date_added,
+            notified: item.customer_notified,
+            status: item.orders_status_id,
+            comments: item.comments
+          });
         });
-      });
 
-      statusHistory = tmp;
-      tmp = [];
+        statusHistory = tmp;
+        tmp = [];
 
-      emails.forEach(function(item) {
-        tmp.push({
-          date: item.email_date,
-          from: item.email_from,
-          to: item.email_to,
-          read: item.is_read
-        });
-      })
+        emails.forEach(function(item) {
+          tmp.push({
+            date: item.email_date,
+            from: item.email_from,
+            to: item.email_to,
+            read: item.is_read
+          });
+        })
 
-      emails = tmp;
-      tmp = null;
+        emails = tmp;
+        tmp = null;
 
       let start = function () {
-
+        // order table
         Vue.component('ordertable', {
             template: '#orderTable',
+            props: ["validate"],
             data () {
               return {
                 snack: false,
@@ -1364,6 +1460,12 @@
                   { text: 'Customer address', sortable: false, value: 'val_custom'},
                   { text: 'Shipment address', sortable: false, value: 'tag_ship'},
                   { text: null, value: 'date', sortable: false, value: 'val_ship' }
+              ],
+              countries: [
+                "china",
+                "germany",
+                "USA",
+                "check Republic "
               ],
               tabledata: [
                 {
@@ -1398,9 +1500,11 @@
                 {
                   value: false,
                   tag_custom: "country | postcode",
-                  val_custom: 'china 1000803',
+                  val_custom_country: 'china',
+                  val_custom_post: '1000803',
                   tag_ship: "country | postcode",
-                  val_ship: ""
+                  val_ship_country: "",
+                  val_ship_post: ""
                 },
                 {
                   value: false,
@@ -1434,134 +1538,184 @@
                 item.val_ship = "";
               }
             });
-          }
-        }
-      });
-
-      Vue.component('ordertablesecondary', {
-        template: '#orderTableSecondary',
-        data () {
-          return {
-            search: '',
-            total: 0,
-            headers: [
-              { text: 'ID', align: 'left', value: 'id' },
-              { text: 'Product', align: 'left' ,value: 'product' },
-              { text: 'Quantity', align: 'left', value: 'qantity' },
-              { text: 'Price', align: 'left', value: 'price' },
-              { text: 'Amount', align: 'left', value: 'amount' },
-              { text: null, sortable: false, value: null}
-            ],
-            desserts: [
-              {
-                value: false,
-                id: '1',
-                product: "Boyer Paris Topaz 3.5/35 mm Leica M Mount with coupling",
-                quantity: 1,
-                price: 4050,
-                amount: 4050
-              },
-              {
-                value: false,
-                id: 2 ,
-                product: "FED ZORKI C Rangefinder Camera with INDUSTAR-22 50 mm F/3.5",
-                quantity: 2,
-                price: 5625,
-                amount: 11250
-              }
-            ]
-          }
-        },
-        methods: {
-          deleteItem (item) {
-            const index = this.desserts.indexOf(item)
-            confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
           },
-          ordersTotal: function () {
-            let res = 0;
-
-            this.desserts.forEach(function(item) {
-              res += item.amount;
+          isValid() {
+            this.tabledata.forEach(function(item) {
+              console.log(item);
+              /*if (item.tag_custom !== "country | postcode" && (item.val_custom === "" || item.val_ship === "")) {
+                return false;
+              }*/
             })
-
-            return res;
           }
         }
       });
 
-      Vue.component('ordereddatepicker', {
+        // order table secondary
+        Vue.component('ordertablesecondary', {
+          template: '#orderTableSecondary',
+          data () {
+            return {
+              dialog: false,
+              search: '',
+              total: 0,
+              headers: [
+                { text: 'ID', align: 'left', value: 'id' },
+                { text: 'Product', align: 'left' ,value: 'product' },
+                { text: 'Quantity', align: 'left', value: 'qantity' },
+                { text: 'Price', align: 'left', value: 'price' },
+                { text: 'Amount', align: 'left', value: 'amount' },
+                { text: null, sortable: false, value: null}
+              ],
+              products: [
+                {
+                  value: false,
+                  id: '1',
+                  product: "Boyer Paris Topaz 3.5/35 mm Leica M Mount with coupling",
+                  quantity: 1,
+                  price: 4050
+                },
+                {
+                  value: false,
+                  id: 2 ,
+                  product: "FED ZORKI C Rangefinder Camera with INDUSTAR-22 50 mm F/3.5",
+                  quantity: 2,
+                  price: 5625
+                }
+              ],
+              editedIndex: -1,
+              editedItem: {
+                id: '',
+                product: '' ,
+                quantity: 0,
+                price: 0,
+              },
+              defaultItem: {
+                id: '',
+                product: '' ,
+                quantity: 0,
+                price: 0,
+              }
+            }
+          },
+          methods: {
+            editItem (item) {
+              this.editedIndex = this.products.indexOf(item)
+              this.editedItem = Object.assign({}, item)
+              this.dialog = true
+            },
+            deleteItem (item) {
+              const index = this.products.indexOf(item)
+              confirm('Are you sure you want to delete this item?') && this.products.splice(index, 1)
+            },
+            ordersTotal: function () {
+              let res = 0;
+
+              this.products.forEach(function(item) {
+                res += (item.price * item.quantity);
+              })
+
+              return res;
+            },
+            close () {
+              this.dialog = false
+              setTimeout(() => {
+                this.editedItem = Object.assign({}, this.defaultItem)
+                this.editedIndex = -1
+              }, 300)
+            },
+
+            save () {
+              if (this.editedIndex > -1) {
+                Object.assign(this.products[this.editedIndex], this.editedItem)
+              } else {
+                this.products.push(this.editedItem)
+              }
+              this.close()
+            }
+          },
+          computed: {
+            formTitle () {
+              return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
+            }
+          },
+          watch: {
+            dialog (val) {
+              val || this.close()
+            }
+          }
+        });
+
+        // data picker
+        Vue.component('ordereddatepicker', {
         template: '#datePicker',
          data: () => ({
           date: "2018-09-10",
           menu: false,
           modal: false,
           menu2: false
-        })
-      });
-      Vue.component('paiddatepicker', {
-        template: '#datePicker',
-         data: () => ({
-          date: "2018-09-10",
-          menu: false,
-          modal: false,
-          menu2: false
-        })
-      });
-      Vue.component('shippeddatepicker', {
-        template: '#datePicker',
-         data: () => ({
-          date: null,
-          menu: false,
-          modal: false,
-          menu2: false
-        })
-      });
-      Vue.component('cleareddatepicker', {
-        template: '#datePicker',
-         data: () => ({
-          date: null,
-          menu: false,
-          modal: false,
-          menu2: false
-        })
-      });
-      Vue.component('refundeddatepicker', {
-        template: '#datePicker',
-         data: () => ({
-          date: null,
-          menu: false,
-          modal: false,
-          menu2: false
-        })
-      });
+          })
+        });
+        Vue.component('paiddatepicker', {
+          template: '#datePicker',
+           data: () => ({
+            date: "2018-09-10",
+            menu: false,
+            modal: false,
+            menu2: false
+          })
+        });
+        Vue.component('shippeddatepicker', {
+          template: '#datePicker',
+           data: () => ({
+            date: null,
+            menu: false,
+            modal: false,
+            menu2: false
+          })
+        });
+        Vue.component('cleareddatepicker', {
+          template: '#datePicker',
+           data: () => ({
+            date: null,
+            menu: false,
+            modal: false,
+            menu2: false
+          })
+        });
+        Vue.component('refundeddatepicker', {
+          template: '#datePicker',
+           data: () => ({
+            date: null,
+            menu: false,
+            modal: false,
+            menu2: false
+          })
+        });
 
-
-      Vue.component('ordergrid', {
-        template: '#orderGrid',
-        data () {
-          return {
-            paymentMethods: [
-              "PayPall",
-              "Webmoney"
-            ],
-            currencies: [
-              "EUR",
-              "CZK"
-            ],
-            statuses: [
-              "ordered",
-              "pinding",
-              "refunded"
-            ],
-            auction_accounts: [
-              "ebay.com-leica-post"
-            ],
-            paypalls: [
-              "6FSCZSD2345DACF123"
-            ]
+        // order grid
+        Vue.component('ordergrid', {
+          template: '#orderGrid',
+          data () {
+            return {
+              paymentMethods: [
+                "PayPall",
+                "Webmoney"
+              ],
+              currencies: [
+                "EUR",
+                "CZK"
+              ],
+              statuses: [
+                "ordered",
+                "pinding",
+                "refunded"
+              ],
+              auction_accounts: [
+                "ebay.com-leica-post"
+              ]
+            }
           }
-        }
-      });
+        });
 
         /*status history*/
         Vue.component('statushistorytable', {
@@ -1596,10 +1750,18 @@
               frame: {
                 loading: false,
                 body: email.email_body.email_body
-              }
+              },
+              dialog: false,
+              dialog_loader: false,
+              embody: ""
             }
           },
           methods: {
+            send(to) {
+              this.dialog_loader = true;
+              console.log(to + " " + this.embody);
+              this.dialog = false;
+            }
           }
         });
 
@@ -1610,6 +1772,14 @@
             return {
               e1: 1,
               timestamp: "2018-10-22T00:00:00+02:00",
+              currency: "EUR",
+              weightunit: "KG",
+              lengthunit: "CM",
+              customs_price: '3000.00',
+              insured_price: '0',
+              quantity: '1',
+              pieces: '1',
+              weight: '3.00',
               services: [
                 "International Economy",
                 "International First",
@@ -1642,7 +1812,8 @@
                 "FedEx Pak"
               ],
               unitsw: [
-                "KG"
+                "KG",
+                "lbs"
               ],
               signaturetypes: [
                 "None specified",
@@ -1654,9 +1825,21 @@
                 "Fedex Zebra"
               ]
             }
+          }, 
+          methods: {
+            totalprice() {
+              return this.customs_price * this.quantity
+            },  
+            totalinsured() {
+              return this.insured_price * this.quantity
+            },
+            totalweight() {
+              return this.weight * this.quantity
+            }
           }
         });
 
+        /*Main template*/
         new Vue({
           el: '#app',
           data: {
@@ -1665,6 +1848,15 @@
             order: 25624,
             emails_all: emails.length,
             emails_active: 11
+          },
+          methods: {
+            valid() {
+              if(this.$refs.ordermain.isValid()) {
+                this.isActiv = false;
+              } else {
+                alert("Please fill in all fields");
+              }
+            }
           }
         });
 
@@ -1724,6 +1916,11 @@
         box-shadow: 3px 3px 6px #e1e1e1
     }
 
+    .layout.row.compressed {
+      max-height: 6vh;
+      min-height: 5vh;
+    }
+
     .elevation-1 {
         width: 71%;
         float: left;
@@ -1736,6 +1933,10 @@
 
     .theme--light.v-table {
         border-top: 1px solid lightgrey;
+    }
+
+    th.custom_width {
+      width: 20%;
     }
 
     table.v-table thead th span.bold {
