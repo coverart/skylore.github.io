@@ -1730,7 +1730,8 @@
                 ],
                 currencies: [
                   "EUR",
-                  "CZK"
+                  "USD",
+                  "CZK",
                 ],
                 statuses: [
                   "ordered",
@@ -1993,7 +1994,7 @@
                   this.$refs.ordergrid.payment_method = tempdata.payment_method,
                   this.$refs.ordergrid.currency = tempdata.currency,
                   this.$refs.ordergrid.paypal_id = tempdata.PayPalTransactionID,
-                  this.$refs.ordergrid.auction_account = tempdata.cite,
+                  this.$refs.ordergrid.auction_account = tempdata.site,
                   this.$refs.ordermain.loading = false, 
                   this.$refs.ordermain.tabledata = tmp,
                   console.log(response.data.data[0])));
