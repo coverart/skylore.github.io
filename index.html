@@ -243,6 +243,7 @@
           </v-flex>
           <v-flex xs8>
             <v-select
+              :value="currency"
               :items="currencies"
               prepend-icon="euro_symbol"
             ></v-select>
@@ -255,6 +256,7 @@
           </v-flex>
           <v-flex xs8>
             <v-select
+              :value="status"
               :items="statuses"
               prepend-icon="timeline"
             ></v-select>
@@ -266,6 +268,7 @@
           </v-flex>
           <v-flex xs8>
             <v-select
+              :value="auction_account"
               :items="auction_accounts"
               prepend-icon="account_box"
             ></v-select>
@@ -277,6 +280,7 @@
           </v-flex>
           <v-flex xs8>
             <v-text-field
+              :value="paypal_id"
               prepend-icon="payment"
             ></v-text-field>
           </v-flex>
@@ -1716,6 +1720,10 @@
             data () {
               return {
                 payment_method: null,
+                currency: null,
+                status: null,
+                auction_account: null,
+                paypal_id: null,
                 paymentMethods: [
                   "PayPal",
                   "Webmoney"
@@ -1983,6 +1991,9 @@
                   tmp[5].val_custom = tempdata.customers_email_address,
                   tmp[6].val_custom = tempdata.customer.customers_telephone,
                   this.$refs.ordergrid.payment_method = tempdata.payment_method,
+                  this.$refs.ordergrid.currency = tempdata.currency,
+                  this.$refs.ordergrid.paypal_id = tempdata.PayPalTransactionID,
+                  this.$refs.ordergrid.auction_account = tempdata.cite,
                   this.$refs.ordermain.loading = false, 
                   this.$refs.ordermain.tabledata = tmp,
                   console.log(response.data.data[0])));
