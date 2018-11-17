@@ -230,7 +230,6 @@
           </v-flex>
           <v-flex xs8>
             <v-select
-              :value="payment_method"
               :items="paymentMethods"
               prepend-icon="account_balance_wallet"
             ></v-select>
@@ -1741,7 +1740,7 @@
                 .get('https://admin.cameramate.com/api/orders/25624')
                 .then(response => (
                   tempdata = response.data.data[0],
-                  this.payment_method = tempdata.payment_method,
+/*                  this.payment_method = tempdata.payment_method,*/
                   this.$refs.orderedpkr.date = tempdata.date_purchased,
                   this.$refs.paidpkr.date = tempdata.date_paid,
                   this.$refs.shippedpkt.date = tempdata.date_shipped,
