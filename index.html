@@ -11,6 +11,13 @@
 		<link rel="stylesheet" type="text/css" href="css/demo.css" />
 		<link rel="stylesheet" type="text/css" href="css/slideshow.css" />
 		<link rel="stylesheet" type="text/css" href="css/slideshow_layouts.css" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<link href='http://fonts.googleapis.com/css?family=PT+Sans+Narrow' rel='stylesheet' type='text/css' />
+
+		<script
+		  src="https://code.jquery.com/jquery-3.3.1.min.js"
+		  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+		  crossorigin="anonymous"></script>
 		<!--[if IE]>
   		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
   		<style>
@@ -54,8 +61,8 @@
 				<p class="codrops-header__tagline">Get your own print today</p>
 				<p class="ie-message">Please note that your browser does not support the <a href="http://caniuse.com/#search=clip-path">CSS clip-path property</a>.</p>
 				<nav class="dummy-links">
-					<a class="dummy-links__link dummy-links__link--current" href="#">Home</a>
-					<a class="dummy-links__link" href="#">Constructor</a>
+					<a class="dummy-links__link dummy-links__link--current" id="home_button" href="#">Home</a>
+					<a class="dummy-links__link" id="constructor_button" href="#">Gallery</a>
 					<a class="dummy-links__link" href="#">Contact</a>
 				</nav>
 			</header>
@@ -99,7 +106,7 @@
 						<p class="slide__title-sub">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</p>
 					</div>
 				</div><!-- /slide -->
-				<div class="slide slide--layout-4" data-layout="layout4">
+				<div class="slide slide--layout-4" data-layout="layout7">
 					<div class="slide-imgwrap">
 						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/10.jpg);"></div></div>
 						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/8.jpg);"></div></div>
@@ -110,57 +117,60 @@
 						<h3 class="slide__title-main">Custom</h3>
 						<p class="slide__title-sub">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</p>
 					</div>
-				</div><!-- /slide -->
-				<div class="slide slide--layout-5" data-layout="layout5">
-					<div class="slide-imgwrap">
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/1.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/2.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/3.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/4.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/5.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/6.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/7.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/8.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/9.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/10.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/11.jpg);"></div></div>
-						<div class="slide__img"><div class="slide__img-inner" style="background-image: url(img/small/12.jpg);"></div></div>
-					</div>
-					<div class="slide__title">
-						<h3 class="slide__title-main">Get yours</h3>
-						<p class="slide__title-sub">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua</p>
-					</div>
-				</div><!-- /slide -->
+				</div>
 				</div><!-- /slide -->
 				<nav class="slideshow__nav slideshow__nav--arrows">
 					<button id="prev-slide" class="btn btn--arrow" aria-label="Previous slide"><svg class="icon icon--prev"><use xlink:href="#icon-prev"></use></svg></button>
 					<button id="next-slide" class="btn btn--arrow" aria-label="Next slide"><svg class="icon icon--next"><use xlink:href="#icon-next"></use></svg></button>
 				</nav>
 			</div><!-- /slideshow -->
-			<div class="content content--text">
-				<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-				proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-				<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-				proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-				<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-				tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-				consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-				cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-				proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+			<div class="content content--text" id="constructor_content">
+				<div class="rm_wrapper">
+					<div id="rm_container" class="rm_container">
+						<ul>
+							<li data-images="rm_container_1"><img src="img/1.jpg"/></li>
+							<li data-images="rm_container_2"><img src="img/2.jpg"/></li>
+							<li data-images="rm_containe r_3"><img src="img/3.jpg"/></li>
+							<li data-images="rm_container_4"><img src="img/4.jpg"/></li>
+						</ul>
+						<h2>Our works</h2>
+						<div style="display:none;">
+							<div id="rm_container_1">
+								<img src="img/1.jpg"/>
+								<img src="img/5.jpg"/>
+								<img src="img/6.jpg"/>
+								<img src="img/7.jpg"/>
+							</div>
+							<div id="rm_container_2">
+								<img src="img/2.jpg"/>
+								<img src="img/8.jpg"/>
+								<img src="img/9.jpg"/>
+								<img src="img/10.jpg"/>
+							</div>
+							<div id="rm_container_3">
+								<img src="img/3.jpg"/>
+								<img src="img/11.jpg"/>
+								<img src="img/12.jpg"/>
+								<img src="img/13.jpg"/>
+							</div>
+							<div id="rm_container_4">
+								<img src="img/4.jpg"/>
+								<img src="img/14.jpg"/>
+								<img src="img/15.jpg"/>
+								<img src="img/16.jpg"/>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		</main>
 		<script src="js/imagesloaded.pkgd.min.js"></script>
 		<script src="js/anime.min.js"></script>
 		<script src="js/main.js"></script>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script type="text/javascript" src="js/jquery.transform-0.9.3.min_.js"></script>
+		<script type="text/javascript" src="js/jquery.mousewheel.js"></script>
+		<script type="text/javascript" src="js/jquery.RotateImageMenu.js"></script>
 		<script>
 		(function() {
 			var slideshow = new MLSlideshow(document.querySelector('.slideshow'));
@@ -173,6 +183,21 @@
 				slideshow.prev();
 			});
 		})();
+		</script>
+		<script>
+			 $(document).ready(function (){
+	            $("#constructor_button").click(function (){
+	                $('html, body').animate({
+	                    scrollTop: $("#constructor_content").offset().top
+	                }, 500);
+	            });
+
+	            $("#home_button").click(function (){
+	                $('html, body').animate({
+	                    scrollTop: $("main").offset().top
+	                }, 500);
+	            });
+	        });
 		</script>
 	</body>
 </html>
